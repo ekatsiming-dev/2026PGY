@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>甄選報到與面談追蹤系統 (雲端版)</title>
+  <title>甄選報到與面談追蹤系統</title>
   
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -45,115 +45,104 @@
     @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     .fade-in { animation: fadeIn 0.3s ease-in-out; }
     @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+    
+    /* 隱藏捲軸但保留捲動功能 */
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
   </style>
 </head>
 <body class="font-sans text-slate-800 pb-12">
 
-  <!-- API URL 設定彈窗 -->
-  <div id="setupModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center hidden">
-    <div class="bg-white p-8 rounded-2xl shadow-xl max-w-lg w-full mx-4 fade-in border-t-4 border-primary">
-      <h2 class="text-2xl font-bold text-primary mb-2 flex items-center gap-2">
-        <i data-lucide="link"></i> 系統連線設定
-      </h2>
-      <p class="text-sm text-slate-500 mb-6">目前已自動綁定您的專屬資料庫。若未來有更換，請在此更新 Google Apps Script 網頁應用程式網址。</p>
-      <input type="text" id="apiUrlInput" value="https://script.google.com/macros/s/AKfycbzKLj8037In2HuIuOLHwlB_p6UgFAf3dIWcegnZWKAHsME5iYpdSNxzxgPFw85q5oK2aA/exec" placeholder="https://script.google.com/macros/s/..." class="w-full px-4 py-3 rounded-lg border border-slate-200 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all mb-4 bg-slate-50 font-mono text-xs">
-      <div class="flex justify-end gap-3">
-        <button onclick="closeSetupModal()" class="px-6 py-2 rounded-lg font-medium text-slate-500 hover:bg-slate-100 transition-colors">取消</button>
-        <button id="saveApiBtn" class="bg-primary hover:bg-blue-900 text-white px-6 py-2 rounded-lg font-medium transition-colors shadow-sm">
-          儲存並連線
-        </button>
-      </div>
-    </div>
-  </div>
-
   <!-- Header -->
-  <header class="bg-primary text-white py-6 px-8 shadow-md sticky top-0 z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+  <header class="bg-primary text-white py-5 px-6 md:px-8 shadow-md sticky top-0 z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
     <div>
-      <h1 class="text-2xl font-bold tracking-wide flex items-center gap-3">
+      <h1 class="text-xl md:text-2xl font-bold tracking-wide flex flex-wrap items-center gap-2 md:gap-3">
         甄選報到與面談追蹤系統
-        <span id="syncStatus" class="inline-flex items-center gap-1 text-xs bg-emerald-500/20 text-emerald-300 px-2 py-1 rounded-full border border-emerald-500/30">
+        <span id="syncStatus" class="inline-flex items-center gap-1 text-xs bg-emerald-500/20 text-emerald-300 px-2 py-1 rounded-full border border-emerald-500/30 whitespace-nowrap">
           <i data-lucide="wifi" class="w-3 h-3"></i> 已連線
         </span>
       </h1>
-      <p class="text-highlight text-sm mt-1 opacity-90">實時雲端監控板 Cloud Dashboard</p>
+      <p class="text-highlight text-xs md:text-sm mt-1 opacity-90">實時雲端監控板 Cloud Dashboard</p>
     </div>
-    <div class="flex gap-4">
-      <button onclick="fetchData()" class="flex items-center gap-2 bg-white/10 hover:bg-white/20 transition-colors px-4 py-2 rounded-lg text-sm font-medium">
+    <div class="flex flex-wrap gap-2 w-full md:w-auto">
+      <button onclick="fetchData()" class="flex-1 md:flex-none flex justify-center items-center gap-2 bg-white/10 hover:bg-white/20 transition-colors px-5 py-2 rounded-lg text-sm font-medium">
         <i data-lucide="refresh-cw" class="w-4 h-4"></i> 重新整理
       </button>
-      <button onclick="openSetupModal()" class="flex items-center gap-2 bg-white/10 hover:bg-white/20 transition-colors px-4 py-2 rounded-lg text-sm font-medium" title="更換資料庫網址">
-        <i data-lucide="settings" class="w-4 h-4"></i> 設定
-      </button>
+      <!-- 💡 設定按鈕已完全移除，避免現場人員誤觸 -->
     </div>
   </header>
 
-  <main class="max-w-7xl mx-auto px-6 mt-8 space-y-8">
+  <main class="max-w-7xl mx-auto px-4 md:px-6 mt-6 md:mt-8 space-y-6 md:space-y-8">
     
     <!-- 讀取中遮罩 -->
     <div id="loadingOverlay" class="hidden bg-white/80 backdrop-blur-sm border border-slate-100 rounded-2xl p-8 text-center shadow-sm">
       <div class="loader mx-auto mb-4 border-t-accent"></div>
-      <p class="text-slate-500 font-medium">正在與 Google Sheets 同步資料...</p>
+      <p class="text-slate-500 font-medium text-sm md:text-base">正在與 Google Sheets 同步資料...</p>
     </div>
 
     <!-- 戰情面板 -->
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6" id="dashboardContainer">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6" id="dashboardContainer">
       <!-- 由 JS 動態生成 -->
     </div>
 
     <!-- 控制列 -->
-    <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 bg-white p-4 rounded-xl shadow-sm border border-slate-100">
+    <div class="flex flex-col lg:flex-row justify-between items-stretch lg:items-center gap-4 bg-white p-4 md:p-5 rounded-xl shadow-sm border border-slate-100">
       
       <!-- 左側：時段與組別篩選 -->
-      <div class="flex flex-wrap gap-3 w-full lg:w-auto items-center">
-        <!-- 時段切換 -->
-        <div class="flex gap-1 w-full sm:w-auto bg-slate-100 p-1 rounded-lg" id="filterContainer">
-          <button data-session="全部" class="filter-btn px-4 py-1.5 rounded-md text-sm font-medium transition-colors flex-1 sm:flex-none bg-primary text-white shadow-sm">全部</button>
-          <button data-session="上午" class="filter-btn px-4 py-1.5 rounded-md text-sm font-medium transition-colors flex-1 sm:flex-none text-slate-600 hover:bg-slate-200">上午</button>
-          <button data-session="下午" class="filter-btn px-4 py-1.5 rounded-md text-sm font-medium transition-colors flex-1 sm:flex-none text-slate-600 hover:bg-slate-200">下午</button>
+      <div class="flex flex-col sm:flex-row gap-3 w-full lg:w-auto items-stretch sm:items-center">
+        <div class="flex gap-1 bg-slate-100 p-1 rounded-lg w-full sm:w-auto" id="filterContainer">
+          <button data-session="全部" class="filter-btn px-4 py-2 sm:py-1.5 rounded-md text-sm font-medium transition-colors flex-1 bg-primary text-white shadow-sm">全部</button>
+          <button data-session="上午" class="filter-btn px-4 py-2 sm:py-1.5 rounded-md text-sm font-medium transition-colors flex-1 text-slate-600 hover:bg-slate-200">上午</button>
+          <button data-session="下午" class="filter-btn px-4 py-2 sm:py-1.5 rounded-md text-sm font-medium transition-colors flex-1 text-slate-600 hover:bg-slate-200">下午</button>
         </div>
 
-        <!-- 組別下拉選單 -->
-        <div class="relative w-full sm:w-auto min-w-[120px]">
-          <select id="groupFilter" class="w-full appearance-none pl-4 pr-10 py-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all bg-slate-50 text-slate-700 text-sm font-medium cursor-pointer">
+        <div class="relative w-full sm:w-40">
+          <select id="groupFilter" class="w-full appearance-none pl-4 pr-10 py-2 sm:py-1.5 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all bg-slate-50 text-slate-700 text-sm font-medium cursor-pointer h-full">
             <option value="全部">全部組別</option>
-            <!-- 由 JS 動態生成 -->
           </select>
           <i data-lucide="chevron-down" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4 pointer-events-none"></i>
         </div>
       </div>
 
       <!-- 右側：尾數與關鍵字搜尋 -->
-      <div class="flex flex-wrap gap-3 w-full lg:w-auto items-center">
-        <!-- 身分證/ID 尾數搜尋 -->
+      <div class="flex flex-col sm:flex-row gap-3 w-full lg:w-auto items-stretch sm:items-center">
         <div class="relative w-full sm:w-40">
           <i data-lucide="hash" class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4"></i>
-          <input type="text" id="idSuffixInput" placeholder="身分證/ID尾數" class="w-full pl-9 pr-4 py-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all bg-slate-50 text-sm">
+          <input type="text" id="idSuffixInput" placeholder="身分證/ID尾數" class="w-full pl-9 pr-4 py-2 sm:py-1.5 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all bg-slate-50 text-sm">
         </div>
-
-        <!-- 一般關鍵字搜尋 -->
         <div class="relative w-full sm:w-64">
           <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4"></i>
-          <input type="text" id="searchInput" placeholder="搜尋姓名、編號或組序..." class="w-full pl-9 pr-4 py-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all bg-slate-50 text-sm">
+          <input type="text" id="searchInput" placeholder="搜尋姓名、編號或組序..." class="w-full pl-9 pr-4 py-2 sm:py-1.5 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all bg-slate-50 text-sm">
         </div>
       </div>
 
     </div>
 
     <!-- 名單表格 -->
-    <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
-      <div class="overflow-x-auto">
-        <table class="w-full text-left border-collapse">
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden relative">
+      <div class="md:hidden absolute top-0 right-0 bg-gradient-to-l from-white via-white/80 to-transparent w-12 h-full pointer-events-none z-10 flex items-center justify-end pr-2">
+        <i data-lucide="chevron-right" class="text-slate-300 w-5 h-5 animate-pulse"></i>
+      </div>
+      
+      <div class="overflow-x-auto no-scrollbar pb-2">
+        <table class="w-full text-left border-collapse min-w-[800px]">
           <thead>
             <tr class="bg-base border-b border-slate-200 text-sm text-slate-500">
-              <th class="py-4 px-6 font-semibold min-w-[140px]">組別與組序</th>
-              <th class="py-4 px-6 font-semibold min-w-[200px]">姓名/學校</th>
-              <th class="py-4 px-6 font-semibold text-center min-w-[150px]">報到狀態</th>
-              <th class="py-4 px-6 font-semibold text-center min-w-[150px]">面談狀態</th>
+              <th class="py-4 px-4 md:px-6 font-semibold min-w-[120px]">組別與組序</th>
+              <th class="py-4 px-4 md:px-6 font-semibold min-w-[160px]">姓名</th>
+              <th class="py-4 px-4 md:px-6 font-semibold text-center min-w-[140px]">叫號準備</th>
+              <th class="py-4 px-4 md:px-6 font-semibold text-center min-w-[140px]">報到狀態</th>
+              <th class="py-4 px-4 md:px-6 font-semibold text-center min-w-[140px]">面談狀態</th>
             </tr>
           </thead>
           <tbody id="tableBody">
             <tr>
-              <td colspan="4" class="py-12 text-center text-slate-400">
+              <td colspan="5" class="py-12 text-center text-slate-400">
                 <i data-lucide="inbox" class="mx-auto mb-3 opacity-50 w-8 h-8"></i>
                 請先確認連線狀態或重新整理
               </td>
@@ -169,20 +158,15 @@
     let candidates = [];
     let filterSession = '全部';
     
-    // 直接綁定專屬 URL
-    const DEFAULT_API_URL = 'https://script.google.com/macros/s/AKfycbzKLj8037In2HuIuOLHwlB_p6UgFAf3dIWcegnZWKAHsME5iYpdSNxzxgPFw85q5oK2aA/exec';
-    const STORAGE_KEY = 'gas_api_url';
+    // 💡 系統化防呆：API 網址直接寫死，不再依賴 localStorage 或使用者輸入
+    const API_URL = 'https://script.google.com/macros/s/AKfycbzKLj8037In2HuIuOLHwlB_p6UgFAf3dIWcegnZWKAHsME5iYpdSNxzxgPFw85q5oK2aA/exec';
 
     // --- DOM 元素綁定 ---
-    const setupModal = document.getElementById('setupModal');
-    const apiUrlInput = document.getElementById('apiUrlInput');
-    const saveApiBtn = document.getElementById('saveApiBtn');
     const syncStatus = document.getElementById('syncStatus');
     const loadingOverlay = document.getElementById('loadingOverlay');
     const dashboardContainer = document.getElementById('dashboardContainer');
     const tableBody = document.getElementById('tableBody');
     
-    // 篩選器 DOM
     const searchInput = document.getElementById('searchInput');
     const idSuffixInput = document.getElementById('idSuffixInput');
     const groupFilter = document.getElementById('groupFilter');
@@ -191,10 +175,7 @@
     // --- 初始化 ---
     document.addEventListener('DOMContentLoaded', () => {
       lucide.createIcons();
-      checkSetup();
-      
-      // 事件綁定
-      saveApiBtn.addEventListener('click', saveApiUrl);
+      fetchData(); // 載入畫面後直接向寫死的 API 抓取資料
       
       // 綁定所有篩選器的事件
       searchInput.addEventListener('input', renderTable);
@@ -204,7 +185,6 @@
       filterBtns.forEach(btn => {
         btn.addEventListener('click', (e) => {
           filterSession = e.target.dataset.session;
-          // 更新按鈕樣式
           filterBtns.forEach(b => {
             b.classList.remove('bg-primary', 'text-white', 'shadow-sm');
             b.classList.add('text-slate-600');
@@ -216,45 +196,31 @@
       });
     });
 
-    // --- 設定與連線管理 ---
-    function checkSetup() {
-      let url = localStorage.getItem(STORAGE_KEY);
-      if (!url || url !== DEFAULT_API_URL) {
-        url = DEFAULT_API_URL;
-        localStorage.setItem(STORAGE_KEY, url);
-      }
-      apiUrlInput.value = url;
-      fetchData();
+    // --- 輔助函式：動態提取姓名 (Fuzzy Matching) ---
+    // 解決試算表欄位名稱可能帶有空白、或命名方式不統一的問題
+    function extractName(c) {
+      if (c['姓名']) return c['姓名'];
+      if (c['名字']) return c['名字'];
+      if (c['Name']) return c['Name'];
+      
+      // 模糊比對：掃描所有鍵值，只要包含「姓名」或「名字」就抓出來
+      const fuzzyKey = Object.keys(c).find(k => 
+        k.includes('姓名') || k.includes('名字') || k.toLowerCase().includes('name')
+      );
+      
+      return fuzzyKey ? c[fuzzyKey] : '未知';
     }
 
-    function openSetupModal() {
-      setupModal.classList.remove('hidden');
-    }
-
-    function closeSetupModal() {
-      setupModal.classList.add('hidden');
-    }
-
-    function saveApiUrl() {
-      const url = apiUrlInput.value.trim();
-      if (!url.startsWith('https://script.google.com/')) {
-        alert('請輸入有效的 Google Apps Script 網址');
-        return;
-      }
-      localStorage.setItem(STORAGE_KEY, url);
-      closeSetupModal();
-      fetchData();
-    }
-
+    // --- API 狀態更新 ---
     function updateSyncStatus(isSyncing, isError = false) {
       if (isError) {
-        syncStatus.className = 'inline-flex items-center gap-1 text-xs bg-red-500/20 text-red-600 px-2 py-1 rounded-full border border-red-500/30';
+        syncStatus.className = 'inline-flex items-center gap-1 text-xs bg-red-500/20 text-red-600 px-2 py-1 rounded-full border border-red-500/30 whitespace-nowrap';
         syncStatus.innerHTML = '<i data-lucide="wifi-off" class="w-3 h-3"></i> 連線失敗';
       } else if (isSyncing) {
-        syncStatus.className = 'inline-flex items-center gap-1 text-xs bg-accent/20 text-amber-700 px-2 py-1 rounded-full border border-accent/30';
+        syncStatus.className = 'inline-flex items-center gap-1 text-xs bg-accent/20 text-amber-700 px-2 py-1 rounded-full border border-accent/30 whitespace-nowrap';
         syncStatus.innerHTML = '<div class="loader w-3 h-3 border-t-amber-700"></div> 正在同步';
       } else {
-        syncStatus.className = 'inline-flex items-center gap-1 text-xs bg-emerald-500/20 text-emerald-700 px-2 py-1 rounded-full border border-emerald-500/30';
+        syncStatus.className = 'inline-flex items-center gap-1 text-xs bg-emerald-500/20 text-emerald-700 px-2 py-1 rounded-full border border-emerald-500/30 whitespace-nowrap';
         syncStatus.innerHTML = '<i data-lucide="wifi" class="w-3 h-3"></i> 已連線';
       }
       lucide.createIcons();
@@ -262,25 +228,20 @@
 
     // --- API 通訊 ---
     async function fetchData() {
-      const url = localStorage.getItem(STORAGE_KEY);
-      if (!url) return;
-
       loadingOverlay.classList.remove('hidden');
       updateSyncStatus(true);
 
       try {
-        const response = await fetch(url);
+        const response = await fetch(API_URL);
         const result = await response.json();
         
         if (result.status === 'success') {
-          // 💡 系統化處理：動態計算組序 (Group Order)
-          // 確保就算 Google Sheets 沒有「組序」這個欄位，系統也能依據名單順序自動產出組序
           let groupCounters = {};
           candidates = result.data.map(c => {
             const group = c['組別'] || '未分組';
             if (!groupCounters[group]) groupCounters[group] = 1;
             else groupCounters[group]++;
-            return { ...c, _groupOrder: groupCounters[group] }; // 賦予動態組序屬性
+            return { ...c, _groupOrder: groupCounters[group] }; 
           });
 
           updateGroupDropdown(); 
@@ -293,25 +254,18 @@
       } catch (error) {
         console.error('Fetch error:', error);
         updateSyncStatus(false, true);
-        tableBody.innerHTML = `<tr><td colspan="4" class="py-12 text-center text-red-500">無法讀取資料，請檢查網址或您的試算表權限設定（需設為所有人可存取）。<br><span class="text-xs opacity-70">${error.message}</span></td></tr>`;
+        tableBody.innerHTML = `<tr><td colspan="5" class="py-12 text-center text-red-500">無法讀取資料，請確認您的 Google Sheet 權限已設為「知道連結的使用者皆可檢視」。<br><span class="text-xs opacity-70">${error.message}</span></td></tr>`;
       } finally {
         loadingOverlay.classList.add('hidden');
       }
     }
 
     async function handleAction(rowIndex, type, isUndo = false) {
-      const url = localStorage.getItem(STORAGE_KEY);
-      if (!url) return;
-
       const now = new Date();
-      // 💡 系統化修正：確保時間戳記為台北日期與時間
       const timeString = now.toLocaleString('zh-TW', { 
         timeZone: 'Asia/Taipei',
-        month: '2-digit',
-        day: '2-digit',
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit',
+        month: '2-digit', day: '2-digit',
+        hour: '2-digit', minute: '2-digit', second: '2-digit',
         hour12: false 
       });
       
@@ -320,10 +274,13 @@
 
       const originalData = JSON.parse(JSON.stringify(candidates[targetIndex]));
       
-      if (type === 'checkin') {
+      if (type === 'call') {
+        candidates[targetIndex].status_call = !isUndo;
+        candidates[targetIndex].time_call = isUndo ? '' : timeString;
+      } else if (type === 'checkin') {
         candidates[targetIndex].status_checkin = !isUndo;
         candidates[targetIndex].time_checkin = isUndo ? '' : timeString;
-        if (isUndo) {
+        if (isUndo) { 
           candidates[targetIndex].status_interview = false;
           candidates[targetIndex].time_interview = '';
         }
@@ -338,7 +295,7 @@
 
       try {
         const payload = { rowIndex, type, isUndo, timeString };
-        const response = await fetch(url, {
+        const response = await fetch(API_URL, {
           method: 'POST',
           headers: { 'Content-Type': 'text/plain;charset=utf-8' },
           body: JSON.stringify(payload)
@@ -375,9 +332,11 @@
     function renderDashboard() {
       const calcStats = (sessionStr) => {
         const sessionData = candidates.filter(c => c['時段'] === sessionStr);
-        const total = sessionData.length;
-        const checkedIn = sessionData.filter(c => c.status_checkin).length;
-        const interviewed = sessionData.filter(c => c.status_interview).length;
+        const validData = sessionData.filter(c => c['出席'] !== '否' && c['出席'] !== '未');
+        
+        const total = validData.length;
+        const checkedIn = validData.filter(c => c.status_checkin).length;
+        const interviewed = validData.filter(c => c.status_interview).length;
         
         const attendanceRate = total === 0 ? 0 : Math.round((checkedIn / total) * 100);
         const interviewRate = checkedIn === 0 ? 0 : Math.round((interviewed / checkedIn) * 100);
@@ -388,44 +347,44 @@
       const stats = { 上午: calcStats('上午'), 下午: calcStats('下午') };
       
       dashboardContainer.innerHTML = ['上午', '下午'].map(session => `
-        <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 flex flex-col relative overflow-hidden fade-in">
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-5 md:p-6 flex flex-col relative overflow-hidden fade-in">
           <div class="absolute top-0 left-0 w-1 h-full bg-primary"></div>
-          <h2 class="text-xl font-bold text-primary mb-4 flex items-center gap-2">
+          <h2 class="text-lg md:text-xl font-bold text-primary mb-4 flex items-center gap-2">
             <i data-lucide="clock" class="text-accent w-5 h-5"></i> ${session}場即時戰況
           </h2>
           
-          <div class="grid grid-cols-2 gap-4 mb-4">
-            <div class="bg-slate-50 rounded-xl p-4">
-              <p class="text-slate-500 text-xs font-semibold mb-1">出席進度 (已報到/總數)</p>
-              <p class="text-2xl font-bold text-slate-800">
-                ${stats[session].checkedIn} <span class="text-sm text-slate-400 font-normal">/ ${stats[session].total}</span>
+          <div class="grid grid-cols-2 gap-3 md:gap-4 mb-4">
+            <div class="bg-slate-50 rounded-xl p-3 md:p-4 border border-slate-100">
+              <p class="text-slate-500 text-[10px] md:text-xs font-semibold mb-1">出席進度 (已報到/應出席)</p>
+              <p class="text-xl md:text-2xl font-bold text-slate-800">
+                ${stats[session].checkedIn} <span class="text-xs md:text-sm text-slate-400 font-normal">/ ${stats[session].total}</span>
               </p>
             </div>
-            <div class="bg-slate-50 rounded-xl p-4">
-              <p class="text-slate-500 text-xs font-semibold mb-1">面談進度 (完成/已報到)</p>
-              <p class="text-2xl font-bold text-slate-800">
-                ${stats[session].interviewed} <span class="text-sm text-slate-400 font-normal">/ ${stats[session].checkedIn}</span>
+            <div class="bg-slate-50 rounded-xl p-3 md:p-4 border border-slate-100">
+              <p class="text-slate-500 text-[10px] md:text-xs font-semibold mb-1">面談進度 (完成/已報到)</p>
+              <p class="text-xl md:text-2xl font-bold text-slate-800">
+                ${stats[session].interviewed} <span class="text-xs md:text-sm text-slate-400 font-normal">/ ${stats[session].checkedIn}</span>
               </p>
             </div>
           </div>
 
-          <div class="space-y-4">
+          <div class="space-y-3 md:space-y-4">
             <div>
-              <div class="flex justify-between text-sm mb-1">
-                <span class="font-medium text-slate-600">出席率</span>
+              <div class="flex justify-between text-xs md:text-sm mb-1">
+                <span class="font-medium text-slate-600">出席率 <span class="text-[10px] text-slate-400 font-normal">(已排除不出席者)</span></span>
                 <span class="font-bold text-primary">${stats[session].attendanceRate}%</span>
               </div>
-              <div class="w-full bg-slate-100 rounded-full h-2">
-                <div class="bg-primary h-2 rounded-full transition-all duration-500" style="width: ${stats[session].attendanceRate}%"></div>
+              <div class="w-full bg-slate-100 rounded-full h-1.5 md:h-2">
+                <div class="bg-primary h-1.5 md:h-2 rounded-full transition-all duration-500" style="width: ${stats[session].attendanceRate}%"></div>
               </div>
             </div>
             <div>
-              <div class="flex justify-between text-sm mb-1">
-                <span class="font-medium text-slate-600">面談完成率 <span class="text-xs text-slate-400 font-normal">(以報到人數為基準)</span></span>
+              <div class="flex justify-between text-xs md:text-sm mb-1">
+                <span class="font-medium text-slate-600">面談完成率</span>
                 <span class="font-bold text-accent">${stats[session].interviewRate}%</span>
               </div>
-              <div class="w-full bg-slate-100 rounded-full h-2">
-                <div class="bg-accent h-2 rounded-full transition-all duration-500" style="width: ${stats[session].interviewRate}%"></div>
+              <div class="w-full bg-slate-100 rounded-full h-1.5 md:h-2">
+                <div class="bg-accent h-1.5 md:h-2 rounded-full transition-all duration-500" style="width: ${stats[session].interviewRate}%"></div>
               </div>
             </div>
           </div>
@@ -451,8 +410,8 @@
           matchSuffix = sid.endsWith(idSuffix) || idStr.endsWith(idSuffix);
         }
 
-        // 💡 改善搜尋邏輯：將計算出來的「組序」也納入可搜尋的字串中
-        const searchStr = `${c['姓名'] || ''} ${c['ID'] || ''} ${c['NO'] || ''} ${c['組序'] || c._groupOrder || ''}`.toLowerCase();
+        const displayName = extractName(c);
+        const searchStr = `${displayName} ${c['ID'] || ''} ${c['NO'] || ''} ${c['組序'] || c._groupOrder || ''}`.toLowerCase();
         const matchKeyword = searchStr.includes(keyword);
 
         return matchSession && matchGroup && matchSuffix && matchKeyword;
@@ -461,7 +420,7 @@
       if (filtered.length === 0) {
         tableBody.innerHTML = `
           <tr>
-            <td colspan="4" class="py-12 text-center text-slate-400">
+            <td colspan="5" class="py-12 text-center text-slate-400">
               <i data-lucide="alert-circle" class="mx-auto mb-3 opacity-50 w-8 h-8"></i>
               沒有符合條件的資料
             </td>
@@ -470,63 +429,115 @@
         return;
       }
 
-      tableBody.innerHTML = filtered.map(c => `
+      tableBody.innerHTML = filtered.map(c => {
+        
+        const displayName = extractName(c);
+
+        let actionCellsHTML = '';
+        if (c['出席'] === '否') {
+          actionCellsHTML = `
+            <td colspan="3" class="py-4 px-4 md:px-6">
+              <div class="flex items-center justify-center h-full">
+                <div class="bg-red-50 text-red-600 border border-red-100 rounded-lg px-4 py-3 w-full text-center flex items-center justify-center gap-2">
+                  <i data-lucide="x-circle" class="w-4 h-4"></i>
+                  <span class="font-bold text-sm">已回覆無法出席</span>
+                </div>
+              </div>
+            </td>`;
+        } else if (c['出席'] === '未') {
+          actionCellsHTML = `
+            <td colspan="3" class="py-4 px-4 md:px-6">
+              <div class="flex items-center justify-center h-full">
+                <div class="bg-amber-50 text-amber-700 border border-amber-100 rounded-lg px-4 py-3 w-full text-center flex flex-col md:flex-row items-center justify-center gap-1 md:gap-2">
+                  <i data-lucide="alert-triangle" class="w-4 h-4 flex-shrink-0"></i>
+                  <span class="font-bold text-sm whitespace-normal md:whitespace-nowrap">未回覆是否通過一階國考</span>
+                  <span class="text-xs opacity-80">(不應出席)</span>
+                </div>
+              </div>
+            </td>`;
+        } else {
+          actionCellsHTML = `
+            <!-- 叫號準備 -->
+            <td class="py-4 px-4 md:px-6 text-center">
+              ${c.status_call ? `
+                <div class="flex flex-col items-center">
+                  <span class="inline-flex items-center gap-1 text-indigo-600 bg-indigo-50 px-3 py-1 rounded-full text-xs md:text-sm font-semibold mb-1 border border-indigo-100 whitespace-nowrap">
+                    <i data-lucide="bell-ring" class="w-3.5 h-3.5 md:w-4 md:h-4"></i> 已通知
+                  </span>
+                  <span class="text-[10px] md:text-xs text-slate-400 font-mono">${c.time_call}</span>
+                  <button onclick="handleAction(${c._rowIndex}, 'call', true)" class="text-[10px] text-slate-400 hover:text-red-500 mt-1 underline transition-colors">取消叫號</button>
+                </div>
+              ` : `
+                <button onclick="handleAction(${c._rowIndex}, 'call', false)" class="inline-flex items-center justify-center gap-1.5 md:gap-2 bg-indigo-500 hover:bg-indigo-600 text-white px-3 md:px-5 py-2 rounded-lg text-sm font-medium transition-transform active:scale-95 shadow-sm w-full max-w-[120px] mx-auto">
+                  <i data-lucide="mic" class="w-4 h-4"></i> 準備
+                </button>
+              `}
+            </td>
+            
+            <!-- 報到狀態 -->
+            <td class="py-4 px-4 md:px-6 text-center">
+              ${c.status_checkin ? `
+                <div class="flex flex-col items-center">
+                  <span class="inline-flex items-center gap-1 text-emerald-600 bg-emerald-50 px-3 py-1 rounded-full text-xs md:text-sm font-semibold mb-1 border border-emerald-100 whitespace-nowrap">
+                    <i data-lucide="check-circle-2" class="w-3.5 h-3.5 md:w-4 md:h-4"></i> 已報到
+                  </span>
+                  <span class="text-[10px] md:text-xs text-slate-400 font-mono">${c.time_checkin}</span>
+                  <button onclick="handleAction(${c._rowIndex}, 'checkin', true)" class="text-[10px] text-slate-400 hover:text-red-500 mt-1 underline transition-colors">取消報到</button>
+                </div>
+              ` : `
+                <button onclick="handleAction(${c._rowIndex}, 'checkin', false)" class="inline-flex items-center justify-center gap-1.5 md:gap-2 bg-primary hover:bg-blue-900 text-white px-3 md:px-5 py-2 rounded-lg text-sm font-medium transition-transform active:scale-95 shadow-sm w-full max-w-[120px] mx-auto">
+                  <i data-lucide="user-check" class="w-4 h-4"></i> 報到
+                </button>
+              `}
+            </td>
+
+            <!-- 面談狀態 -->
+            <td class="py-4 px-4 md:px-6 text-center">
+              ${c.status_interview ? `
+                <div class="flex flex-col items-center">
+                  <span class="inline-flex items-center gap-1 text-primary bg-accent/20 px-3 py-1 rounded-full text-xs md:text-sm font-semibold mb-1 border border-accent/30 whitespace-nowrap">
+                    <i data-lucide="check-circle-2" class="w-3.5 h-3.5 md:w-4 md:h-4"></i> 面談完成
+                  </span>
+                  <span class="text-[10px] md:text-xs text-slate-400 font-mono">${c.time_interview}</span>
+                  <button onclick="handleAction(${c._rowIndex}, 'interview', true)" class="text-[10px] text-slate-400 hover:text-red-500 mt-1 underline transition-colors">取消面談</button>
+                </div>
+              ` : `
+                <button onclick="handleAction(${c._rowIndex}, 'interview', false)" 
+                  ${!c.status_checkin ? 'disabled' : ''}
+                  class="inline-flex items-center justify-center gap-1.5 md:gap-2 px-3 md:px-5 py-2 rounded-lg text-sm font-medium transition-all active:scale-95 shadow-sm w-full max-w-[120px] mx-auto whitespace-nowrap ${
+                    c.status_checkin 
+                      ? 'bg-accent hover:bg-amber-500 text-primary' 
+                      : 'bg-slate-200 text-slate-400 cursor-not-allowed'
+                  }"
+                >
+                  <i data-lucide="message-square" class="w-4 h-4"></i> 
+                  ${c.status_checkin ? '完成面談' : '等待報到'}
+                </button>
+              `}
+            </td>
+          `;
+        }
+
+        return `
         <tr class="border-b border-slate-100 hover:bg-slate-50 transition-colors ${c.status_interview ? 'bg-highlight/30' : ''} fade-in">
           
-          <!-- 💡 核心修改區塊：聚焦組序，並保留防呆核對資訊 -->
-          <td class="py-4 px-6">
-            <div class="flex items-baseline gap-1.5">
-              <span class="text-xs font-bold text-slate-400">第${c['組別'] || '-'}組</span>
-              <span class="font-bold text-slate-800 text-xl">#${c['組序'] || c._groupOrder || '-'}</span>
+          <td class="py-4 px-4 md:px-6">
+            <div class="flex items-baseline gap-1.5 whitespace-nowrap">
+              <span class="text-[10px] md:text-xs font-bold text-slate-400">第${c['組別'] || '-'}組</span>
+              <span class="font-bold text-slate-800 text-lg md:text-xl">#${c['組序'] || c._groupOrder || '-'}</span>
             </div>
-            <div class="text-[11px] text-slate-400 mt-1">原編號: ${c['NO'] || c['ID'] || '-'}</div>
-            <div class="text-[11px] text-slate-500">${c['時段'] || ''}</div>
+            <div class="text-[10px] md:text-[11px] text-slate-400 mt-1">原編號: ${c['NO'] || c['ID'] || '-'}</div>
+            <div class="text-[10px] md:text-[11px] text-slate-500">${c['時段'] || ''}</div>
           </td>
 
-          <td class="py-4 px-6">
-            <div class="font-bold text-primary text-lg">${c['姓名'] || '未知'}</div>
-            <div class="text-xs text-slate-500 mt-1">${c['畢業學校'] || ''}</div>
+          <td class="py-4 px-4 md:px-6">
+            <div class="font-bold text-primary text-base md:text-lg whitespace-nowrap">${displayName}</div>
           </td>
-          <td class="py-4 px-6 text-center">
-            ${c.status_checkin ? `
-              <div class="flex flex-col items-center">
-                <span class="inline-flex items-center gap-1 text-emerald-600 bg-emerald-50 px-3 py-1 rounded-full text-sm font-semibold mb-1 border border-emerald-100">
-                  <i data-lucide="check-circle-2" class="w-4 h-4"></i> 已報到
-                </span>
-                <span class="text-xs text-slate-400 font-mono">${c.time_checkin}</span>
-                <button onclick="handleAction(${c._rowIndex}, 'checkin', true)" class="text-[10px] text-slate-400 hover:text-red-500 mt-1 underline transition-colors">取消報到</button>
-              </div>
-            ` : `
-              <button onclick="handleAction(${c._rowIndex}, 'checkin', false)" class="inline-flex items-center justify-center gap-2 bg-primary hover:bg-blue-900 text-white px-5 py-2 rounded-lg font-medium transition-transform active:scale-95 shadow-sm w-full max-w-[120px]">
-                <i data-lucide="user-check" class="w-4 h-4"></i> 報到
-              </button>
-            `}
-          </td>
-          <td class="py-4 px-6 text-center">
-            ${c.status_interview ? `
-              <div class="flex flex-col items-center">
-                <span class="inline-flex items-center gap-1 text-primary bg-accent/20 px-3 py-1 rounded-full text-sm font-semibold mb-1 border border-accent/30">
-                  <i data-lucide="check-circle-2" class="w-4 h-4"></i> 面談完成
-                </span>
-                <span class="text-xs text-slate-400 font-mono">${c.time_interview}</span>
-                <button onclick="handleAction(${c._rowIndex}, 'interview', true)" class="text-[10px] text-slate-400 hover:text-red-500 mt-1 underline transition-colors">取消面談</button>
-              </div>
-            ` : `
-              <button onclick="handleAction(${c._rowIndex}, 'interview', false)" 
-                ${!c.status_checkin ? 'disabled' : ''}
-                class="inline-flex items-center justify-center gap-2 px-5 py-2 rounded-lg font-medium transition-all active:scale-95 shadow-sm w-full max-w-[120px] ${
-                  c.status_checkin 
-                    ? 'bg-accent hover:bg-amber-500 text-primary' 
-                    : 'bg-slate-200 text-slate-400 cursor-not-allowed'
-                }"
-              >
-                <i data-lucide="message-square" class="w-4 h-4"></i> 
-                ${c.status_checkin ? '完成面談' : '等待報到'}
-              </button>
-            `}
-          </td>
+          
+          ${actionCellsHTML}
+
         </tr>
-      `).join('');
+      `}).join('');
       
       lucide.createIcons();
     }
