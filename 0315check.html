@@ -54,12 +54,21 @@
       -ms-overflow-style: none;
       scrollbar-width: none;
     }
+
+    /* 隱藏展開式搜尋框的 placeholder 直到 hover/focus */
+    .search-expand::placeholder {
+      color: transparent;
+      transition: color 0.2s ease;
+    }
+    .search-expand:focus::placeholder, .search-expand:hover::placeholder {
+      color: #94a3b8; /* text-slate-400 */
+    }
   </style>
 </head>
 <body class="font-sans text-slate-800 pb-12">
 
   <!-- Header -->
-  <header class="bg-primary text-white py-5 px-6 md:px-8 shadow-md sticky top-0 z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+  <header class="bg-primary text-white py-5 px-6 md:px-8 shadow-md sticky top-0 z-20 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
     <div>
       <h1 class="text-xl md:text-2xl font-bold tracking-wide flex flex-wrap items-center gap-2 md:gap-3">
         甄選報到與面談追蹤系統
@@ -73,7 +82,6 @@
       <button onclick="fetchData()" class="flex-1 md:flex-none flex justify-center items-center gap-2 bg-white/10 hover:bg-white/20 transition-colors px-5 py-2 rounded-lg text-sm font-medium">
         <i data-lucide="refresh-cw" class="w-4 h-4"></i> 重新整理
       </button>
-      <!-- 💡 設定按鈕已完全移除，避免現場人員誤觸 -->
     </div>
   </header>
 
@@ -85,39 +93,49 @@
       <p class="text-slate-500 font-medium text-sm md:text-base">正在與 Google Sheets 同步資料...</p>
     </div>
 
-    <!-- 戰情面板 -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6" id="dashboardContainer">
+    <!-- 1. 時段篩選區 (置頂) -->
+    <div class="flex justify-center">
+      <div class="inline-flex bg-white p-1.5 rounded-xl shadow-sm border border-slate-100 w-full sm:w-auto" id="filterContainer">
+        <button data-session="全部" class="filter-btn px-6 py-2 rounded-lg text-sm font-medium transition-all flex-1 sm:flex-none bg-primary text-white shadow-sm">全部時段</button>
+        <button data-session="上午" class="filter-btn px-6 py-2 rounded-lg text-sm font-medium transition-all flex-1 sm:flex-none text-slate-600 hover:bg-slate-50">上午場</button>
+        <button data-session="下午" class="filter-btn px-6 py-2 rounded-lg text-sm font-medium transition-all flex-1 sm:flex-none text-slate-600 hover:bg-slate-50">下午場</button>
+      </div>
+    </div>
+
+    <!-- 2. 對應的進度儀表板 (會隨時段篩選連動) -->
+    <div id="dashboardContainer" class="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6 transition-all">
       <!-- 由 JS 動態生成 -->
     </div>
 
-    <!-- 控制列 -->
-    <div class="flex flex-col lg:flex-row justify-between items-stretch lg:items-center gap-4 bg-white p-4 md:p-5 rounded-xl shadow-sm border border-slate-100">
+    <!-- 3. 詳細篩選控制列 (搜尋、組別、尾數按鈕) -->
+    <div class="flex flex-col lg:flex-row justify-between items-center gap-4 bg-white p-4 md:p-5 rounded-xl shadow-sm border border-slate-100">
       
-      <!-- 左側：時段與組別篩選 -->
-      <div class="flex flex-col sm:flex-row gap-3 w-full lg:w-auto items-stretch sm:items-center">
-        <div class="flex gap-1 bg-slate-100 p-1 rounded-lg w-full sm:w-auto" id="filterContainer">
-          <button data-session="全部" class="filter-btn px-4 py-2 sm:py-1.5 rounded-md text-sm font-medium transition-colors flex-1 bg-primary text-white shadow-sm">全部</button>
-          <button data-session="上午" class="filter-btn px-4 py-2 sm:py-1.5 rounded-md text-sm font-medium transition-colors flex-1 text-slate-600 hover:bg-slate-200">上午</button>
-          <button data-session="下午" class="filter-btn px-4 py-2 sm:py-1.5 rounded-md text-sm font-medium transition-colors flex-1 text-slate-600 hover:bg-slate-200">下午</button>
+      <!-- 左側：圖示化搜尋與組別 -->
+      <div class="flex items-center gap-3 w-full lg:w-auto">
+        <!-- 展開式模糊搜尋 -->
+        <div class="relative group z-10">
+          <input type="text" id="searchInput" class="search-expand w-10 h-10 pl-10 pr-4 rounded-full border border-slate-200 focus:w-48 sm:focus:w-64 hover:w-48 sm:hover:w-64 transition-all duration-300 ease-in-out outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 bg-slate-50 cursor-pointer focus:cursor-text text-sm" placeholder="搜尋姓名、編號...">
+          <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 w-4 h-4 pointer-events-none group-hover:text-primary transition-colors"></i>
         </div>
 
-        <div class="relative w-full sm:w-40">
-          <select id="groupFilter" class="w-full appearance-none pl-4 pr-10 py-2 sm:py-1.5 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all bg-slate-50 text-slate-700 text-sm font-medium cursor-pointer h-full">
+        <div class="h-6 w-px bg-slate-200 mx-1 hidden sm:block"></div>
+
+        <!-- 組別下拉選單 -->
+        <div class="relative flex-1 sm:w-36">
+          <select id="groupFilter" class="w-full appearance-none pl-4 pr-9 py-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all bg-slate-50 text-slate-700 text-sm font-medium cursor-pointer h-10">
             <option value="全部">全部組別</option>
           </select>
           <i data-lucide="chevron-down" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4 pointer-events-none"></i>
         </div>
       </div>
 
-      <!-- 右側：尾數與關鍵字搜尋 -->
-      <div class="flex flex-col sm:flex-row gap-3 w-full lg:w-auto items-stretch sm:items-center">
-        <div class="relative w-full sm:w-40">
-          <i data-lucide="hash" class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4"></i>
-          <input type="text" id="idSuffixInput" placeholder="身分證/ID尾數" class="w-full pl-9 pr-4 py-2 sm:py-1.5 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all bg-slate-50 text-sm">
-        </div>
-        <div class="relative w-full sm:w-64">
-          <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4"></i>
-          <input type="text" id="searchInput" placeholder="搜尋姓名、編號或組序..." class="w-full pl-9 pr-4 py-2 sm:py-1.5 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all bg-slate-50 text-sm">
+      <!-- 右側：按鍵式尾數篩選 -->
+      <div class="flex items-center w-full lg:w-auto overflow-hidden">
+        <span class="text-xs font-bold text-slate-400 mr-3 shrink-0 uppercase tracking-wider hidden sm:block">尾數篩選</span>
+        <i data-lucide="hash" class="text-slate-400 w-4 h-4 mr-2 sm:hidden shrink-0"></i>
+        <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-1 w-full" id="idSuffixButtons">
+          <button data-val="" class="id-btn active shrink-0 px-3 h-9 rounded-md text-sm font-medium bg-slate-800 text-white shadow-sm transition-all">全</button>
+          <!-- 0-9 按鈕由 JS 生成 -->
         </div>
       </div>
 
@@ -132,7 +150,6 @@
       <div class="overflow-x-auto no-scrollbar pb-2">
         <table class="w-full text-left border-collapse min-w-[800px]">
           <thead>
-            <!-- 調整順序：報到狀態 -> 叫號準備 -> 面談狀態 -->
             <tr class="bg-base border-b border-slate-200 text-sm text-slate-500">
               <th class="py-4 px-4 md:px-6 font-semibold min-w-[120px]">組別與組序</th>
               <th class="py-4 px-4 md:px-6 font-semibold min-w-[160px]">姓名</th>
@@ -154,12 +171,16 @@
     </div>
   </main>
 
+  <!-- 自訂 Toast 提示框容器 -->
+  <div id="toastContainer" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
   <script>
     // --- 應用程式狀態 ---
     let candidates = [];
-    let filterSession = '全部';
+    let filterSession = '全部'; // 全部, 上午, 下午
+    let filterIdSuffix = ''; // 空字串代表全部，否則為 '0'-'9'
     
-    // 💡 系統化防呆：API 網址直接寫死，不再依賴 localStorage 或使用者輸入
+    // API 網址直接寫死
     const API_URL = 'https://script.google.com/macros/s/AKfycbzKLj8037In2HuIuOLHwlB_p6UgFAf3dIWcegnZWKAHsME5iYpdSNxzxgPFw85q5oK2aA/exec';
 
     // --- DOM 元素綁定 ---
@@ -169,47 +190,112 @@
     const tableBody = document.getElementById('tableBody');
     
     const searchInput = document.getElementById('searchInput');
-    const idSuffixInput = document.getElementById('idSuffixInput');
     const groupFilter = document.getElementById('groupFilter');
     const filterBtns = document.querySelectorAll('.filter-btn');
+    const idSuffixContainer = document.getElementById('idSuffixButtons');
 
     // --- 初始化 ---
     document.addEventListener('DOMContentLoaded', () => {
       lucide.createIcons();
-      fetchData(); // 載入畫面後直接向寫死的 API 抓取資料
+      generateIdButtons();
+      fetchData();
       
-      // 綁定所有篩選器的事件
+      // 綁定搜尋與組別事件
       searchInput.addEventListener('input', renderTable);
-      idSuffixInput.addEventListener('input', renderTable);
       groupFilter.addEventListener('change', renderTable);
 
+      // 綁定大時段篩選事件
       filterBtns.forEach(btn => {
         btn.addEventListener('click', (e) => {
           filterSession = e.target.dataset.session;
+          
+          // 更新按鈕樣式
           filterBtns.forEach(b => {
             b.classList.remove('bg-primary', 'text-white', 'shadow-sm');
-            b.classList.add('text-slate-600');
+            b.classList.add('text-slate-600', 'hover:bg-slate-50');
           });
-          e.target.classList.remove('text-slate-600');
+          e.target.classList.remove('text-slate-600', 'hover:bg-slate-50');
           e.target.classList.add('bg-primary', 'text-white', 'shadow-sm');
+          
+          // 連動更新儀表板與表格
+          renderDashboard();
           renderTable();
         });
       });
     });
 
-    // --- 輔助函式：動態提取姓名 (Fuzzy Matching) ---
-    // 解決試算表欄位名稱可能帶有空白、或命名方式不統一的問題
+    // 生成 0-9 尾數按鈕
+    function generateIdButtons() {
+      for (let i = 0; i <= 9; i++) {
+        const btn = document.createElement('button');
+        btn.className = 'id-btn shrink-0 w-9 h-9 rounded-md text-sm font-semibold bg-slate-100 text-slate-600 hover:bg-slate-200 border border-slate-200/50 transition-all';
+        btn.dataset.val = i;
+        btn.textContent = i;
+        idSuffixContainer.appendChild(btn);
+      }
+
+      // 綁定尾數按鈕點擊事件
+      const idBtns = document.querySelectorAll('.id-btn');
+      idBtns.forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          filterIdSuffix = e.target.dataset.val;
+          
+          // 更新樣式
+          idBtns.forEach(b => {
+            b.classList.remove('bg-slate-800', 'text-white', 'shadow-sm', 'border-transparent');
+            b.classList.add('bg-slate-100', 'text-slate-600', 'hover:bg-slate-200');
+          });
+          e.target.classList.remove('bg-slate-100', 'text-slate-600', 'hover:bg-slate-200');
+          e.target.classList.add('bg-slate-800', 'text-white', 'shadow-sm', 'border-transparent');
+          
+          renderTable();
+        });
+      });
+    }
+
+    // --- 自訂提示框 (取代 alert) ---
+    function showToast(message, type = 'error') {
+      const toast = document.createElement('div');
+      const bgColor = type === 'error' ? 'bg-red-600' : 'bg-slate-800';
+      toast.className = `${bgColor} text-white px-4 py-3 rounded-lg shadow-lg flex items-center gap-2 text-sm font-medium fade-in pointer-events-auto`;
+      toast.innerHTML = `
+        <i data-lucide="${type === 'error' ? 'alert-triangle' : 'info'}" class="w-4 h-4"></i>
+        ${message}
+      `;
+      document.getElementById('toastContainer').appendChild(toast);
+      lucide.createIcons();
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateY(10px)';
+        toast.style.transition = 'all 0.3s ease';
+        setTimeout(() => toast.remove(), 300);
+      }, 4000);
+    }
+
+    // --- 輔助函式：動態提取姓名 ---
     function extractName(c) {
       if (c['姓名']) return c['姓名'];
       if (c['名字']) return c['名字'];
       if (c['Name']) return c['Name'];
-      
-      // 模糊比對：掃描所有鍵值，只要包含「姓名」或「名字」就抓出來
-      const fuzzyKey = Object.keys(c).find(k => 
-        k.includes('姓名') || k.includes('名字') || k.toLowerCase().includes('name')
-      );
-      
+      const fuzzyKey = Object.keys(c).find(k => k.includes('姓名') || k.includes('名字') || k.toLowerCase().includes('name'));
       return fuzzyKey ? c[fuzzyKey] : '未知';
+    }
+
+    // --- 輔助函式：時間格式化 (UTC 轉台北時間，並優化顯示) ---
+    function formatTime(timeStr) {
+      if (!timeStr) return '';
+      try {
+        const date = new Date(timeStr);
+        if (isNaN(date.getTime())) return timeStr;
+        // 節省手機版面寬度，且此系統為當日追蹤，僅顯示時間 (HH:mm:ss)
+        return date.toLocaleTimeString('zh-TW', {
+          timeZone: 'Asia/Taipei',
+          hour12: false,
+          hour: '2-digit', minute: '2-digit', second: '2-digit'
+        });
+      } catch (e) {
+        return timeStr; // 解析失敗則原樣輸出
+      }
     }
 
     // --- API 狀態更新 ---
@@ -255,7 +341,7 @@
       } catch (error) {
         console.error('Fetch error:', error);
         updateSyncStatus(false, true);
-        tableBody.innerHTML = `<tr><td colspan="5" class="py-12 text-center text-red-500">無法讀取資料，請確認您的 Google Sheet 權限已設為「知道連結的使用者皆可檢視」。<br><span class="text-xs opacity-70">${error.message}</span></td></tr>`;
+        tableBody.innerHTML = `<tr><td colspan="5" class="py-12 text-center text-red-500">無法讀取資料，請確認您的 Google Sheet 權限設定。<br><span class="text-xs opacity-70">${error.message}</span></td></tr>`;
       } finally {
         loadingOverlay.classList.add('hidden');
       }
@@ -275,12 +361,11 @@
 
       const originalData = JSON.parse(JSON.stringify(candidates[targetIndex]));
       
-      // 💡 邏輯連動機制：取消前置作業時，必須連動取消後續作業
+      // 邏輯連動機制
       if (type === 'checkin') {
         candidates[targetIndex].status_checkin = !isUndo;
         candidates[targetIndex].time_checkin = isUndo ? '' : timeString;
         if (isUndo) { 
-          // 取消報到 -> 連帶取消叫號與面談
           candidates[targetIndex].status_call = false;
           candidates[targetIndex].time_call = '';
           candidates[targetIndex].status_interview = false;
@@ -290,7 +375,6 @@
         candidates[targetIndex].status_call = !isUndo;
         candidates[targetIndex].time_call = isUndo ? '' : timeString;
         if (isUndo) {
-          // 取消叫號 -> 連帶取消面談
           candidates[targetIndex].status_interview = false;
           candidates[targetIndex].time_interview = '';
         }
@@ -314,14 +398,10 @@
         const result = await response.json();
         if (result.status !== 'success') throw new Error(result.message);
         
-        // 為了確保資料完全同步，若有連動取消的情形發生，理想作法是觸發重新抓取或額外送出連動 API。
-        // （這裡依賴原本設計的單行更新，若是連動修改，建議搭配 GAS 後端一同升級接收多狀態，
-        //  目前前端已做好防呆阻斷不合法狀態）
-        
         updateSyncStatus(false);
       } catch (error) {
         console.error('Update error:', error);
-        alert('雲端更新失敗，資料將恢復原狀。請檢查網路連線。');
+        showToast('雲端更新失敗，資料將恢復原狀。請檢查網路連線。');
         candidates[targetIndex] = originalData;
         renderDashboard();
         renderTable();
@@ -360,11 +440,19 @@
 
       const stats = { 上午: calcStats('上午'), 下午: calcStats('下午') };
       
-      dashboardContainer.innerHTML = ['上午', '下午'].map(session => `
-        <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-5 md:p-6 flex flex-col relative overflow-hidden fade-in">
+      // 根據篩選時段決定要顯示的儀表板
+      const sessionsToShow = filterSession === '全部' ? ['上午', '下午'] : [filterSession];
+      
+      // 動態調整排版：單一時段時置中並縮減寬度
+      dashboardContainer.className = sessionsToShow.length === 1 
+        ? 'grid grid-cols-1 gap-4 md:gap-6 max-w-2xl mx-auto transition-all fade-in' 
+        : 'grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6 transition-all fade-in';
+
+      dashboardContainer.innerHTML = sessionsToShow.map(session => `
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-5 md:p-6 flex flex-col relative overflow-hidden">
           <div class="absolute top-0 left-0 w-1 h-full bg-primary"></div>
           <h2 class="text-lg md:text-xl font-bold text-primary mb-4 flex items-center gap-2">
-            <i data-lucide="clock" class="text-accent w-5 h-5"></i> ${session}場即時戰況
+            <i data-lucide="${session === '上午' ? 'sunrise' : 'sunset'}" class="text-accent w-5 h-5"></i> ${session}場即時戰況
           </h2>
           
           <div class="grid grid-cols-2 gap-3 md:gap-4 mb-4">
@@ -385,7 +473,7 @@
           <div class="space-y-3 md:space-y-4">
             <div>
               <div class="flex justify-between text-xs md:text-sm mb-1">
-                <span class="font-medium text-slate-600">出席率 <span class="text-[10px] text-slate-400 font-normal">(已排除不出席者)</span></span>
+                <span class="font-medium text-slate-600">出席率 <span class="text-[10px] text-slate-400 font-normal">(排除不出席)</span></span>
                 <span class="font-bold text-primary">${stats[session].attendanceRate}%</span>
               </div>
               <div class="w-full bg-slate-100 rounded-full h-1.5 md:h-2">
@@ -410,20 +498,23 @@
 
     function renderTable() {
       const keyword = searchInput.value.toLowerCase().trim();
-      const idSuffix = idSuffixInput.value.trim();
       const groupVal = groupFilter.value;
 
       const filtered = candidates.filter(c => {
+        // 1. 時段篩選
         const matchSession = filterSession === '全部' || c['時段'] === filterSession;
+        // 2. 組別篩選
         const matchGroup = groupVal === '全部' || String(c['組別']) === groupVal;
-
+        
+        // 3. 尾數篩選 (按鍵式)
         let matchSuffix = true;
-        if (idSuffix !== '') {
+        if (filterIdSuffix !== '') {
           const sid = String(c['身分證字號'] || '');
           const idStr = String(c['ID'] || '');
-          matchSuffix = sid.endsWith(idSuffix) || idStr.endsWith(idSuffix);
+          matchSuffix = sid.endsWith(filterIdSuffix) || idStr.endsWith(filterIdSuffix);
         }
 
+        // 4. 關鍵字篩選
         const displayName = extractName(c);
         const searchStr = `${displayName} ${c['ID'] || ''} ${c['NO'] || ''} ${c['組序'] || c._groupOrder || ''}`.toLowerCase();
         const matchKeyword = searchStr.includes(keyword);
@@ -446,8 +537,8 @@
       tableBody.innerHTML = filtered.map(c => {
         
         const displayName = extractName(c);
-
         let actionCellsHTML = '';
+        
         if (c['出席'] === '否') {
           actionCellsHTML = `
             <td colspan="3" class="py-4 px-4 md:px-6">
@@ -470,71 +561,70 @@
               </div>
             </td>`;
         } else {
-          // 重新排序並加入防呆邏輯
           actionCellsHTML = `
             <!-- 報到狀態 -->
-            <td class="py-4 px-4 md:px-6 text-center">
+            <td class="py-3 px-2 md:px-6 text-center">
               ${c.status_checkin ? `
                 <div class="flex flex-col items-center">
-                  <span class="inline-flex items-center gap-1 text-emerald-600 bg-emerald-50 px-3 py-1 rounded-full text-xs md:text-sm font-semibold mb-1 border border-emerald-100 whitespace-nowrap">
+                  <span class="inline-flex items-center gap-1 text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full text-[11px] md:text-sm font-semibold mb-1 border border-emerald-100 whitespace-nowrap">
                     <i data-lucide="check-circle-2" class="w-3.5 h-3.5 md:w-4 md:h-4"></i> 已報到
                   </span>
-                  <span class="text-[10px] md:text-xs text-slate-400 font-mono">${c.time_checkin}</span>
+                  <span class="text-[10px] md:text-xs text-slate-400 font-mono tracking-tighter">${formatTime(c.time_checkin)}</span>
                   <button onclick="handleAction(${c._rowIndex}, 'checkin', true)" class="text-[10px] text-slate-400 hover:text-red-500 mt-1 underline transition-colors">取消報到</button>
                 </div>
               ` : `
-                <button onclick="handleAction(${c._rowIndex}, 'checkin', false)" class="inline-flex items-center justify-center gap-1.5 md:gap-2 bg-primary hover:bg-blue-900 text-white px-3 md:px-5 py-2 rounded-lg text-sm font-medium transition-transform active:scale-95 shadow-sm w-full max-w-[120px] mx-auto">
-                  <i data-lucide="user-check" class="w-4 h-4"></i> 報到
+                <button onclick="handleAction(${c._rowIndex}, 'checkin', false)" class="inline-flex items-center justify-center gap-1 md:gap-2 bg-primary hover:bg-blue-900 text-white px-2 md:px-5 py-1.5 md:py-2 rounded-lg text-[11px] md:text-sm font-medium transition-transform active:scale-95 shadow-sm w-full max-w-[90px] md:max-w-[120px] mx-auto">
+                  <i data-lucide="user-check" class="w-3.5 h-3.5 md:w-4 md:h-4"></i> 報到
                 </button>
               `}
             </td>
 
-            <!-- 叫號準備 (依賴報到狀態) -->
-            <td class="py-4 px-4 md:px-6 text-center">
+            <!-- 叫號準備 -->
+            <td class="py-3 px-2 md:px-6 text-center">
               ${c.status_call ? `
                 <div class="flex flex-col items-center">
-                  <span class="inline-flex items-center gap-1 text-indigo-600 bg-indigo-50 px-3 py-1 rounded-full text-xs md:text-sm font-semibold mb-1 border border-indigo-100 whitespace-nowrap">
+                  <span class="inline-flex items-center gap-1 text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-full text-[11px] md:text-sm font-semibold mb-1 border border-indigo-100 whitespace-nowrap">
                     <i data-lucide="bell-ring" class="w-3.5 h-3.5 md:w-4 md:h-4"></i> 已通知
                   </span>
-                  <span class="text-[10px] md:text-xs text-slate-400 font-mono">${c.time_call}</span>
+                  <span class="text-[10px] md:text-xs text-slate-400 font-mono tracking-tighter">${formatTime(c.time_call)}</span>
                   <button onclick="handleAction(${c._rowIndex}, 'call', true)" class="text-[10px] text-slate-400 hover:text-red-500 mt-1 underline transition-colors">取消叫號</button>
                 </div>
               ` : `
                 <button onclick="handleAction(${c._rowIndex}, 'call', false)" 
                   ${!c.status_checkin ? 'disabled' : ''}
-                  class="inline-flex items-center justify-center gap-1.5 md:gap-2 px-3 md:px-5 py-2 rounded-lg text-sm font-medium transition-all active:scale-95 shadow-sm w-full max-w-[120px] mx-auto ${
+                  class="inline-flex items-center justify-center gap-1 md:gap-2 px-2 md:px-5 py-1.5 md:py-2 rounded-lg text-[11px] md:text-sm font-medium transition-all active:scale-95 shadow-sm w-full max-w-[90px] md:max-w-[120px] mx-auto ${
                     c.status_checkin 
                       ? 'bg-indigo-500 hover:bg-indigo-600 text-white' 
                       : 'bg-slate-200 text-slate-400 cursor-not-allowed'
                   }"
                 >
-                  <i data-lucide="mic" class="w-4 h-4"></i> 
-                  ${c.status_checkin ? '準備' : '等待報到'}
+                  <i data-lucide="mic" class="w-3.5 h-3.5 md:w-4 md:h-4"></i> 
+                  ${c.status_checkin ? '準備' : '等報到'}
                 </button>
               `}
             </td>
             
-            <!-- 面談狀態 (依賴叫號狀態) -->
-            <td class="py-4 px-4 md:px-6 text-center">
+            <!-- 面談狀態 -->
+            <td class="py-3 px-2 md:px-6 text-center">
               ${c.status_interview ? `
                 <div class="flex flex-col items-center">
-                  <span class="inline-flex items-center gap-1 text-primary bg-accent/20 px-3 py-1 rounded-full text-xs md:text-sm font-semibold mb-1 border border-accent/30 whitespace-nowrap">
+                  <span class="inline-flex items-center gap-1 text-primary bg-accent/20 px-2.5 py-1 rounded-full text-[11px] md:text-sm font-semibold mb-1 border border-accent/30 whitespace-nowrap">
                     <i data-lucide="check-circle-2" class="w-3.5 h-3.5 md:w-4 md:h-4"></i> 面談完成
                   </span>
-                  <span class="text-[10px] md:text-xs text-slate-400 font-mono">${c.time_interview}</span>
+                  <span class="text-[10px] md:text-xs text-slate-400 font-mono tracking-tighter">${formatTime(c.time_interview)}</span>
                   <button onclick="handleAction(${c._rowIndex}, 'interview', true)" class="text-[10px] text-slate-400 hover:text-red-500 mt-1 underline transition-colors">取消面談</button>
                 </div>
               ` : `
                 <button onclick="handleAction(${c._rowIndex}, 'interview', false)" 
                   ${!c.status_call ? 'disabled' : ''}
-                  class="inline-flex items-center justify-center gap-1.5 md:gap-2 px-3 md:px-5 py-2 rounded-lg text-sm font-medium transition-all active:scale-95 shadow-sm w-full max-w-[120px] mx-auto whitespace-nowrap ${
+                  class="inline-flex items-center justify-center gap-1 md:gap-2 px-2 md:px-5 py-1.5 md:py-2 rounded-lg text-[11px] md:text-sm font-medium transition-all active:scale-95 shadow-sm w-full max-w-[90px] md:max-w-[120px] mx-auto whitespace-nowrap ${
                     c.status_call 
                       ? 'bg-accent hover:bg-amber-500 text-primary' 
                       : 'bg-slate-200 text-slate-400 cursor-not-allowed'
                   }"
                 >
-                  <i data-lucide="message-square" class="w-4 h-4"></i> 
-                  ${c.status_call ? '完成面談' : (c.status_checkin ? '等待叫號' : '等待報到')}
+                  <i data-lucide="message-square" class="w-3.5 h-3.5 md:w-4 md:h-4"></i> 
+                  ${c.status_call ? '完成' : (c.status_checkin ? '等叫號' : '等報到')}
                 </button>
               `}
             </td>
@@ -544,17 +634,17 @@
         return `
         <tr class="border-b border-slate-100 hover:bg-slate-50 transition-colors ${c.status_interview ? 'bg-highlight/30' : ''} fade-in">
           
-          <td class="py-4 px-4 md:px-6">
+          <td class="py-3 px-3 md:px-6">
             <div class="flex items-baseline gap-1.5 whitespace-nowrap">
               <span class="text-[10px] md:text-xs font-bold text-slate-400">第${c['組別'] || '-'}組</span>
-              <span class="font-bold text-slate-800 text-lg md:text-xl">#${c['組序'] || c._groupOrder || '-'}</span>
+              <span class="font-bold text-slate-800 text-base md:text-xl">#${c['組序'] || c._groupOrder || '-'}</span>
             </div>
             <div class="text-[10px] md:text-[11px] text-slate-400 mt-1">原編號: ${c['NO'] || c['ID'] || '-'}</div>
             <div class="text-[10px] md:text-[11px] text-slate-500">${c['時段'] || ''}</div>
           </td>
 
-          <td class="py-4 px-4 md:px-6">
-            <div class="font-bold text-primary text-base md:text-lg whitespace-nowrap">${displayName}</div>
+          <td class="py-3 px-3 md:px-6">
+            <div class="font-bold text-primary text-sm md:text-lg whitespace-nowrap">${displayName}</div>
           </td>
           
           ${actionCellsHTML}
