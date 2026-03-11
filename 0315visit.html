@@ -47,7 +47,7 @@
 </head>
 <body class="font-sans text-slate-800 min-h-screen lg:h-screen flex flex-col">
 
-  <!-- Header: 將 QR Code 移出，讓標題更乾淨 -->
+  <!-- Header -->
   <header class="bg-primary text-white py-3 lg:py-4 px-4 lg:px-6 shadow-lg flex flex-col md:flex-row justify-between items-center z-20 shrink-0 gap-3">
     <div class="flex items-center gap-3 w-full md:w-auto justify-center md:justify-start">
       <div class="text-left">
@@ -79,7 +79,7 @@
     </div>
   </header>
 
-  <!-- 主要內容區：改為左右雙欄佈局 (Dashboard Style) -->
+  <!-- 主要內容區 -->
   <main class="flex-1 flex flex-col lg:flex-row p-3 lg:p-4 lg:overflow-hidden max-w-[1400px] mx-auto w-full gap-4 relative">
     
     <!-- 左側邊欄：QR Code 與 各組進度 -->
@@ -103,7 +103,7 @@
             <i data-lucide="bar-chart-2" class="w-5 h-5 text-accent"></i> 各組進度 (完面/總數)
           </h3>
         </div>
-        <!-- 進度條列表：內容動態生成，超出自動捲動 -->
+        <!-- 進度條列表 -->
         <div class="p-4 flex-1 overflow-y-auto no-scrollbar" id="groupProgressContainer">
           <div class="text-center text-slate-400 text-sm py-4"><i data-lucide="loader-2" class="w-5 h-5 animate-spin mx-auto mb-1 text-accent"></i>計算中...</div>
         </div>
@@ -294,7 +294,7 @@
       renderVideoSection();
     }
 
-    // 新增：姓名隱私遮蔽處理
+    // 姓名隱私遮蔽處理
     function maskName(name) {
       if (!name) return '';
       if (name.length === 1) return name;
@@ -356,27 +356,30 @@
         let groupMembers = groups[g];
         let maxCompletedOrder = 0;
 
+        // 計算目前完成的最大序號，用於輔助判斷是否「過號」
         groupMembers.forEach(member => {
           if (member.status_interview) {
             maxCompletedOrder = Math.max(maxCompletedOrder, member.parsedOrder);
           }
         });
 
-        let callLimit = maxCompletedOrder + 3;
-
         groupMembers.forEach(member => {
           member.isMissedTurn = false;
+          
+          // 確保兼容資料庫可能回傳的布林值或字串型態
+          const isCalled = member.status_call === true || String(member.status_call).toLowerCase() === 'true';
+
           if (member.status_interview) {
             member.boardStatus = 'completed';
-          } else if (member.status_checkin) {
-            if (member.parsedOrder <= callLimit) {
-              member.boardStatus = 'preparing';
-              if (member.parsedOrder <= maxCompletedOrder) {
-                member.isMissedTurn = true; 
-              }
-            } else {
-              member.boardStatus = 'waiting';
+          } else if (isCalled && member.status_checkin) {
+            // 一律依照資料庫 status_call 判斷是否準備中 (前提是必須已報到)
+            member.boardStatus = 'preparing';
+            // 如果被叫號了，但自己的序號小於目前已完面的最高序號，標示為過號
+            if (member.parsedOrder <= maxCompletedOrder) {
+              member.isMissedTurn = true; 
             }
+          } else if (member.status_checkin) {
+            member.boardStatus = 'waiting';
           } else {
             member.boardStatus = 'not_arrived';
           }
@@ -413,7 +416,6 @@
       let displayCount = isVideoExpanded ? allVideoWaitingData.length : 10;
       let displayData = allVideoWaitingData.slice(0, displayCount);
 
-      // 套用姓名遮蔽 maskName
       container.innerHTML = displayData.map(c => `
         <div class="bg-white border border-slate-200 rounded-md px-3 py-1.5 shadow-sm flex items-center gap-2 fade-in">
           <span class="font-bold text-slate-700 text-sm tracking-widest">${maskName(c['姓名'])}</span>
@@ -480,7 +482,6 @@
             break;
         }
 
-        // 套用姓名遮蔽 maskName
         return `
           <tr class="${rowClass}">
             <td class="flex justify-between items-center lg:table-cell py-1.5 lg:py-2.5 px-3 lg:px-6 font-bold text-slate-600 border-b border-slate-50 lg:border-none">
