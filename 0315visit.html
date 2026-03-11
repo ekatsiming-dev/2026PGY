@@ -294,7 +294,15 @@
       renderVideoSection();
     }
 
-    // 新增：渲染左側的各組進度統計
+    // 新增：姓名隱私遮蔽處理
+    function maskName(name) {
+      if (!name) return '';
+      if (name.length === 1) return name;
+      if (name.length === 2) return name.charAt(0) + 'O';
+      // 3個字以上：保留頭尾，中間用 O 取代
+      return name.charAt(0) + 'O'.repeat(name.length - 2) + name.charAt(name.length - 1);
+    }
+
     function renderGroupProgress(groupsKeys, groupsData) {
       if (groupsKeys.length === 0) {
         groupProgressContainer.innerHTML = '<div class="text-center text-slate-400 text-sm py-4">目前時段無組別資料</div>';
@@ -305,7 +313,6 @@
       groupsKeys.sort((a, b) => parseInt(a) - parseInt(b)).forEach(g => {
         let members = groupsData[g];
         let total = members.length;
-        // 計算該組中 status_interview 為 true 的人數 (已完成面談)
         let completed = members.filter(m => m.status_interview).length;
         let percent = total === 0 ? 0 : Math.round((completed / total) * 100);
 
@@ -341,7 +348,6 @@
       const groupsKeys = Object.keys(groups);
       updateFilterOptions(groupsKeys);
       
-      // 呼叫渲染左側進度統計
       renderGroupProgress(groupsKeys, groups);
 
       allProcessedData = [];
@@ -407,9 +413,10 @@
       let displayCount = isVideoExpanded ? allVideoWaitingData.length : 10;
       let displayData = allVideoWaitingData.slice(0, displayCount);
 
+      // 套用姓名遮蔽 maskName
       container.innerHTML = displayData.map(c => `
         <div class="bg-white border border-slate-200 rounded-md px-3 py-1.5 shadow-sm flex items-center gap-2 fade-in">
-          <span class="font-bold text-slate-700 text-sm tracking-widest">${c['姓名']}</span>
+          <span class="font-bold text-slate-700 text-sm tracking-widest">${maskName(c['姓名'])}</span>
         </div>
       `).join('');
 
@@ -473,6 +480,7 @@
             break;
         }
 
+        // 套用姓名遮蔽 maskName
         return `
           <tr class="${rowClass}">
             <td class="flex justify-between items-center lg:table-cell py-1.5 lg:py-2.5 px-3 lg:px-6 font-bold text-slate-600 border-b border-slate-50 lg:border-none">
@@ -481,7 +489,7 @@
             </td>
             <td class="flex justify-between items-center lg:table-cell py-1.5 lg:py-2.5 px-3 lg:px-6 border-b border-slate-50 lg:border-none">
               <span class="lg:hidden text-xs text-slate-400 font-normal">姓名</span>
-              <span class="${nameClass}">${c['姓名']}</span>
+              <span class="${nameClass}">${maskName(c['姓名'])}</span>
             </td>
             <td class="flex justify-center lg:table-cell py-2 lg:py-2.5 px-3 lg:px-6 text-center mt-1 lg:mt-0 lg:w-1/3">
               ${statusBadge}
