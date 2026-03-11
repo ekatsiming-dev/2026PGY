@@ -132,11 +132,12 @@
       <div class="overflow-x-auto no-scrollbar pb-2">
         <table class="w-full text-left border-collapse min-w-[800px]">
           <thead>
+            <!-- 調整順序：報到狀態 -> 叫號準備 -> 面談狀態 -->
             <tr class="bg-base border-b border-slate-200 text-sm text-slate-500">
               <th class="py-4 px-4 md:px-6 font-semibold min-w-[120px]">組別與組序</th>
               <th class="py-4 px-4 md:px-6 font-semibold min-w-[160px]">姓名</th>
-              <th class="py-4 px-4 md:px-6 font-semibold text-center min-w-[140px]">叫號準備</th>
               <th class="py-4 px-4 md:px-6 font-semibold text-center min-w-[140px]">報到狀態</th>
+              <th class="py-4 px-4 md:px-6 font-semibold text-center min-w-[140px]">叫號準備</th>
               <th class="py-4 px-4 md:px-6 font-semibold text-center min-w-[140px]">面談狀態</th>
             </tr>
           </thead>
@@ -274,13 +275,22 @@
 
       const originalData = JSON.parse(JSON.stringify(candidates[targetIndex]));
       
-      if (type === 'call') {
-        candidates[targetIndex].status_call = !isUndo;
-        candidates[targetIndex].time_call = isUndo ? '' : timeString;
-      } else if (type === 'checkin') {
+      // 💡 邏輯連動機制：取消前置作業時，必須連動取消後續作業
+      if (type === 'checkin') {
         candidates[targetIndex].status_checkin = !isUndo;
         candidates[targetIndex].time_checkin = isUndo ? '' : timeString;
         if (isUndo) { 
+          // 取消報到 -> 連帶取消叫號與面談
+          candidates[targetIndex].status_call = false;
+          candidates[targetIndex].time_call = '';
+          candidates[targetIndex].status_interview = false;
+          candidates[targetIndex].time_interview = '';
+        }
+      } else if (type === 'call') {
+        candidates[targetIndex].status_call = !isUndo;
+        candidates[targetIndex].time_call = isUndo ? '' : timeString;
+        if (isUndo) {
+          // 取消叫號 -> 連帶取消面談
           candidates[targetIndex].status_interview = false;
           candidates[targetIndex].time_interview = '';
         }
@@ -303,6 +313,10 @@
         
         const result = await response.json();
         if (result.status !== 'success') throw new Error(result.message);
+        
+        // 為了確保資料完全同步，若有連動取消的情形發生，理想作法是觸發重新抓取或額外送出連動 API。
+        // （這裡依賴原本設計的單行更新，若是連動修改，建議搭配 GAS 後端一同升級接收多狀態，
+        //  目前前端已做好防呆阻斷不合法狀態）
         
         updateSyncStatus(false);
       } catch (error) {
@@ -456,24 +470,8 @@
               </div>
             </td>`;
         } else {
+          // 重新排序並加入防呆邏輯
           actionCellsHTML = `
-            <!-- 叫號準備 -->
-            <td class="py-4 px-4 md:px-6 text-center">
-              ${c.status_call ? `
-                <div class="flex flex-col items-center">
-                  <span class="inline-flex items-center gap-1 text-indigo-600 bg-indigo-50 px-3 py-1 rounded-full text-xs md:text-sm font-semibold mb-1 border border-indigo-100 whitespace-nowrap">
-                    <i data-lucide="bell-ring" class="w-3.5 h-3.5 md:w-4 md:h-4"></i> 已通知
-                  </span>
-                  <span class="text-[10px] md:text-xs text-slate-400 font-mono">${c.time_call}</span>
-                  <button onclick="handleAction(${c._rowIndex}, 'call', true)" class="text-[10px] text-slate-400 hover:text-red-500 mt-1 underline transition-colors">取消叫號</button>
-                </div>
-              ` : `
-                <button onclick="handleAction(${c._rowIndex}, 'call', false)" class="inline-flex items-center justify-center gap-1.5 md:gap-2 bg-indigo-500 hover:bg-indigo-600 text-white px-3 md:px-5 py-2 rounded-lg text-sm font-medium transition-transform active:scale-95 shadow-sm w-full max-w-[120px] mx-auto">
-                  <i data-lucide="mic" class="w-4 h-4"></i> 準備
-                </button>
-              `}
-            </td>
-            
             <!-- 報到狀態 -->
             <td class="py-4 px-4 md:px-6 text-center">
               ${c.status_checkin ? `
@@ -491,7 +489,32 @@
               `}
             </td>
 
-            <!-- 面談狀態 -->
+            <!-- 叫號準備 (依賴報到狀態) -->
+            <td class="py-4 px-4 md:px-6 text-center">
+              ${c.status_call ? `
+                <div class="flex flex-col items-center">
+                  <span class="inline-flex items-center gap-1 text-indigo-600 bg-indigo-50 px-3 py-1 rounded-full text-xs md:text-sm font-semibold mb-1 border border-indigo-100 whitespace-nowrap">
+                    <i data-lucide="bell-ring" class="w-3.5 h-3.5 md:w-4 md:h-4"></i> 已通知
+                  </span>
+                  <span class="text-[10px] md:text-xs text-slate-400 font-mono">${c.time_call}</span>
+                  <button onclick="handleAction(${c._rowIndex}, 'call', true)" class="text-[10px] text-slate-400 hover:text-red-500 mt-1 underline transition-colors">取消叫號</button>
+                </div>
+              ` : `
+                <button onclick="handleAction(${c._rowIndex}, 'call', false)" 
+                  ${!c.status_checkin ? 'disabled' : ''}
+                  class="inline-flex items-center justify-center gap-1.5 md:gap-2 px-3 md:px-5 py-2 rounded-lg text-sm font-medium transition-all active:scale-95 shadow-sm w-full max-w-[120px] mx-auto ${
+                    c.status_checkin 
+                      ? 'bg-indigo-500 hover:bg-indigo-600 text-white' 
+                      : 'bg-slate-200 text-slate-400 cursor-not-allowed'
+                  }"
+                >
+                  <i data-lucide="mic" class="w-4 h-4"></i> 
+                  ${c.status_checkin ? '準備' : '等待報到'}
+                </button>
+              `}
+            </td>
+            
+            <!-- 面談狀態 (依賴叫號狀態) -->
             <td class="py-4 px-4 md:px-6 text-center">
               ${c.status_interview ? `
                 <div class="flex flex-col items-center">
@@ -503,15 +526,15 @@
                 </div>
               ` : `
                 <button onclick="handleAction(${c._rowIndex}, 'interview', false)" 
-                  ${!c.status_checkin ? 'disabled' : ''}
+                  ${!c.status_call ? 'disabled' : ''}
                   class="inline-flex items-center justify-center gap-1.5 md:gap-2 px-3 md:px-5 py-2 rounded-lg text-sm font-medium transition-all active:scale-95 shadow-sm w-full max-w-[120px] mx-auto whitespace-nowrap ${
-                    c.status_checkin 
+                    c.status_call 
                       ? 'bg-accent hover:bg-amber-500 text-primary' 
                       : 'bg-slate-200 text-slate-400 cursor-not-allowed'
                   }"
                 >
                   <i data-lucide="message-square" class="w-4 h-4"></i> 
-                  ${c.status_checkin ? '完成面談' : '等待報到'}
+                  ${c.status_call ? '完成面談' : (c.status_checkin ? '等待叫號' : '等待報到')}
                 </button>
               `}
             </td>
