@@ -43,16 +43,13 @@
     .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
   </style>
 </head>
-<!-- 關鍵修改：手機版使用 min-h-screen 允許自然捲動，電腦版 lg:h-screen 固定高度 -->
 <body class="font-sans text-slate-800 min-h-screen lg:h-screen flex flex-col">
 
   <!-- Header -->
-  <!-- 關鍵修改：改為 flex-col 到 md:flex-row，讓元素在手機上自然堆疊 -->
   <header class="bg-primary text-white py-4 lg:py-5 px-4 lg:px-8 shadow-lg flex flex-col md:flex-row justify-between items-center z-10 shrink-0 gap-4">
     <div class="flex items-center gap-3 w-full md:w-auto justify-center md:justify-start">
       <i data-lucide="monitor-play" class="w-6 h-6 lg:w-8 lg:h-8 text-accent shrink-0"></i>
       <div class="text-center md:text-left">
-        <!-- 關鍵修改：字體大小響應式 -->
         <h1 class="text-xl lg:text-3xl font-black tracking-widest text-white">甄選面談進度叫號看板</h1>
         <p class="text-highlight text-xs lg:text-sm mt-0.5 tracking-wider opacity-90 hidden sm:block">INTERVIEW PROGRESS BOARD</p>
       </div>
@@ -74,7 +71,6 @@
     </div>
   </header>
 
-  <!-- 關鍵修改：手機版移除 overflow-hidden 允許整頁捲動，電腦版才鎖定並套用內部捲動 -->
   <main class="flex-1 flex flex-col lg:flex-row gap-4 lg:gap-6 p-4 lg:p-6 lg:overflow-hidden max-w-[1920px] mx-auto w-full">
     
     <!-- 左側：準備區 (前三順位) -->
@@ -84,12 +80,32 @@
         <h2 class="text-xl lg:text-2xl font-black text-primary tracking-wide">即將面談 (準備區)</h2>
       </div>
       
-      <!-- 關鍵修改：只在電腦版套用 overflow-y-auto -->
-      <div id="preparingList" class="flex-col gap-3 lg:gap-4 lg:overflow-y-auto no-scrollbar lg:pb-4 flex">
+      <!-- 關鍵修改：加上 flex-1 讓這個區塊能延展，從而把底下的 QR Code 推到最下面 -->
+      <div id="preparingList" class="flex-col gap-3 lg:gap-4 lg:overflow-y-auto no-scrollbar lg:pb-4 flex flex-1">
         <!-- 載入中畫面 -->
         <div class="h-48 lg:h-full flex flex-col items-center justify-center text-slate-400">
           <i data-lucide="loader-2" class="w-10 h-10 lg:w-12 lg:h-12 animate-spin mb-4 text-accent"></i>
           <p class="text-lg lg:text-xl font-bold">載入即時進度中...</p>
+        </div>
+      </div>
+
+      <!-- 🌟 新增的 QR Code 區塊 (專為橫式看板設計，靠左下角對齊) -->
+      <div class="hidden lg:flex bg-white rounded-xl shadow-sm border border-slate-200 p-4 mt-auto items-center gap-4 shrink-0 fade-in relative overflow-hidden">
+        <!-- 左側裝飾色塊，呼應您的主要色彩計畫 -->
+        <div class="absolute left-0 top-0 bottom-0 w-1.5 bg-accent"></div>
+        <div class="bg-slate-50 p-1.5 rounded-lg border border-slate-100 shrink-0">
+          <!-- 利用線上可靠的 API 動態生成 QR Code -->
+          <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&margin=1&data=https://ekatsiming-dev.github.io/2026PGY/0315visit.html" alt="手機版 QR Code" class="w-16 h-16 lg:w-20 lg:h-20 object-contain">
+        </div>
+        <div class="flex flex-col justify-center">
+          <div class="text-primary font-bold text-sm lg:text-base flex items-center gap-1.5">
+            <i data-lucide="smartphone" class="w-4 h-4"></i> 手機即時查
+          </div>
+          <div class="text-slate-500 text-[11px] lg:text-xs mt-0.5">掃描左側條碼，將看板帶著走</div>
+          <!-- 顯示部分網址，增加專業與信賴感 -->
+          <div class="text-slate-400 text-[9px] lg:text-[10px] font-mono mt-1 break-all bg-slate-50 px-1.5 py-0.5 rounded border border-slate-100 w-max">
+            ekatsiming-dev.github.io...
+          </div>
         </div>
       </div>
     </div>
@@ -107,10 +123,8 @@
         </div>
       </div>
       
-      <!-- 關鍵修改：只在電腦版限制高度與捲軸 -->
       <div class="flex-1 lg:overflow-y-auto p-2 lg:p-0 no-scrollbar">
         <table class="w-full text-left border-collapse">
-          <!-- 關鍵修改：手機版隱藏表頭 -->
           <thead class="hidden lg:table-header-group sticky top-0 bg-white/95 backdrop-blur-sm z-10 shadow-sm">
             <tr class="text-slate-500 text-sm">
               <th class="py-3 px-6 font-bold w-24">組別</th>
@@ -119,7 +133,6 @@
               <th class="py-3 px-6 font-bold text-center">當前狀態</th>
             </tr>
           </thead>
-          <!-- 手機版將改為卡片列表形式呈現 -->
           <tbody id="waitingListTable" class="flex flex-col lg:table-row-group gap-2 lg:gap-0">
             <!-- 由 JS 動態生成 -->
           </tbody>
@@ -248,7 +261,7 @@
       }
 
       preparingList.innerHTML = preparingData.map((c, index) => `
-        <div class="bg-highlight border-2 border-accent rounded-xl lg:rounded-2xl p-4 lg:p-6 shadow-md lg:shadow-lg pulse-bg fade-in relative overflow-hidden flex flex-col justify-center">
+        <div class="bg-highlight border-2 border-accent rounded-xl lg:rounded-2xl p-4 lg:p-6 shadow-md lg:shadow-lg pulse-bg fade-in relative overflow-hidden flex flex-col justify-center shrink-0">
           <div class="absolute top-0 right-0 bg-accent text-primary font-black text-sm lg:text-xl px-3 py-1 lg:px-5 lg:py-2 rounded-bl-xl lg:rounded-bl-2xl">
             順位 ${index + 1}
           </div>
@@ -275,7 +288,6 @@
 
       waitingListTable.innerHTML = allSessionData.map(c => {
         let statusBadge = '';
-        // 關鍵修改：將 tr 預設改為 flex-col (卡片)，電腦版才恢復 table-row
         let rowClass = 'flex flex-col lg:table-row bg-white lg:bg-transparent border border-slate-100 lg:border-none lg:border-b lg:border-slate-100 hover:bg-slate-50 transition-colors text-base lg:text-lg fade-in rounded-xl lg:rounded-none shadow-sm lg:shadow-none p-3 lg:p-0 ';
 
         switch (c.boardStatus) {
@@ -296,7 +308,6 @@
             break;
         }
 
-        // 關鍵修改：td 加上 flex 與 justify-between，並插入 lg:hidden 的行動版標籤
         return `
           <tr class="${rowClass}">
             <td class="flex justify-between items-center lg:table-cell py-1.5 lg:py-4 px-2 lg:px-6 font-bold text-slate-600 border-b border-slate-50 lg:border-none">
