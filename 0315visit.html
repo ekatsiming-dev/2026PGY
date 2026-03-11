@@ -43,55 +43,39 @@
     .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
   </style>
 </head>
-<body class="font-sans text-slate-800 min-h-screen lg:h-screen flex flex-col relative">
+<!-- 關鍵修改：手機版使用 min-h-screen 允許自然捲動，電腦版 lg:h-screen 固定高度 -->
+<body class="font-sans text-slate-800 min-h-screen lg:h-screen flex flex-col">
 
   <!-- Header -->
+  <!-- 關鍵修改：改為 flex-col 到 md:flex-row，讓元素在手機上自然堆疊 -->
   <header class="bg-primary text-white py-4 lg:py-5 px-4 lg:px-8 shadow-lg flex flex-col md:flex-row justify-between items-center z-10 shrink-0 gap-4">
     <div class="flex items-center gap-3 w-full md:w-auto justify-center md:justify-start">
       <i data-lucide="monitor-play" class="w-6 h-6 lg:w-8 lg:h-8 text-accent shrink-0"></i>
       <div class="text-center md:text-left">
+        <!-- 關鍵修改：字體大小響應式 -->
         <h1 class="text-xl lg:text-3xl font-black tracking-widest text-white">甄選面談進度叫號看板</h1>
         <p class="text-highlight text-xs lg:text-sm mt-0.5 tracking-wider opacity-90 hidden sm:block">INTERVIEW PROGRESS BOARD</p>
       </div>
     </div>
     
-    <div class="flex flex-col sm:flex-row items-center gap-3 lg:gap-6 w-full md:w-auto justify-between md:justify-end">
-      
-      <!-- 手機版專屬工具列容器 (包含篩選與重整按鈕) -->
-      <div class="flex w-full sm:w-auto gap-2">
-        <!-- 篩選組別選擇器 (結合 localStorage) -->
-        <div class="flex-1 sm:flex-none flex items-center gap-2 bg-white/10 px-3 py-1.5 rounded-lg border border-white/20 justify-center transition-colors hover:bg-white/20">
-          <i data-lucide="filter" class="w-4 h-4 text-accent shrink-0"></i>
-          <select id="groupSelector" onchange="setFilteredGroup(this.value)" class="bg-transparent text-white text-sm font-bold outline-none cursor-pointer w-full sm:w-auto *:text-slate-800 appearance-none pr-4">
-            <option value="">🔍 篩選我的組別 (顯示全部)</option>
-            <!-- 選項由 JS 動態產生 -->
-          </select>
-        </div>
-
-        <!-- 手機版手動重整按鈕 -->
-        <button onclick="manualRefresh()" class="sm:hidden bg-white/10 px-3 py-1.5 rounded-lg border border-white/20 transition-colors hover:bg-white/20 flex items-center justify-center active:scale-95">
-          <i data-lucide="refresh-cw" class="refresh-icon w-4 h-4 text-accent"></i>
-        </button>
-      </div>
-
+    <div class="flex flex-col sm:flex-row items-center gap-4 lg:gap-6 w-full md:w-auto justify-between md:justify-end">
       <!-- 時段切換 -->
-      <div class="bg-white/10 p-1 rounded-lg flex gap-1 w-full sm:w-auto justify-center shrink-0">
+      <div class="bg-white/10 p-1 rounded-lg flex gap-1 w-full sm:w-auto justify-center">
         <button onclick="setSession('上午')" id="btnMorning" class="flex-1 sm:flex-none px-4 lg:px-6 py-2 rounded-md font-bold text-sm transition-colors bg-accent text-primary">上午場</button>
         <button onclick="setSession('下午')" id="btnAfternoon" class="flex-1 sm:flex-none px-4 lg:px-6 py-2 rounded-md font-bold text-sm transition-colors text-white hover:bg-white/20">下午場</button>
       </div>
-
       <!-- 時鐘與更新提示 -->
-      <div class="text-center md:text-right flex flex-col items-center md:items-end shrink-0 hidden sm:flex">
+      <div class="text-center md:text-right flex flex-col items-center md:items-end">
         <div id="currentTime" class="text-xl lg:text-2xl font-bold font-mono text-highlight">00:00:00</div>
-        <button onclick="manualRefresh()" class="text-[10px] lg:text-xs text-slate-300 flex items-center gap-1 mt-1 hover:text-white transition-colors group cursor-pointer active:scale-95">
-          <i data-lucide="refresh-cw" class="refresh-icon w-3 h-3 group-hover:rotate-180 transition-transform duration-300"></i> 
-          系統每 15 秒更新 <span class="text-accent opacity-80 group-hover:opacity-100 transition-opacity ml-0.5">(點擊重整)</span>
-        </button>
+        <div class="text-[10px] lg:text-xs text-slate-300 flex items-center gap-1 mt-1">
+          <i data-lucide="refresh-cw" class="w-3 h-3 animate-spin"></i> 系統每 15 秒更新
+        </div>
       </div>
     </div>
   </header>
 
-  <main class="flex-1 flex flex-col lg:flex-row gap-4 lg:gap-6 p-4 lg:p-6 lg:overflow-hidden max-w-[1920px] mx-auto w-full relative">
+  <!-- 關鍵修改：手機版移除 overflow-hidden 允許整頁捲動，電腦版才鎖定並套用內部捲動 -->
+  <main class="flex-1 flex flex-col lg:flex-row gap-4 lg:gap-6 p-4 lg:p-6 lg:overflow-hidden max-w-[1920px] mx-auto w-full">
     
     <!-- 左側：準備區 (前三順位) -->
     <div class="w-full lg:w-5/12 flex flex-col gap-3 lg:gap-4 lg:h-full shrink-0">
@@ -100,6 +84,7 @@
         <h2 class="text-xl lg:text-2xl font-black text-primary tracking-wide">即將面談 (準備區)</h2>
       </div>
       
+      <!-- 關鍵修改：只在電腦版套用 overflow-y-auto -->
       <div id="preparingList" class="flex-col gap-3 lg:gap-4 lg:overflow-y-auto no-scrollbar lg:pb-4 flex">
         <!-- 載入中畫面 -->
         <div class="h-48 lg:h-full flex flex-col items-center justify-center text-slate-400">
@@ -122,16 +107,19 @@
         </div>
       </div>
       
+      <!-- 關鍵修改：只在電腦版限制高度與捲軸 -->
       <div class="flex-1 lg:overflow-y-auto p-2 lg:p-0 no-scrollbar">
         <table class="w-full text-left border-collapse">
+          <!-- 關鍵修改：手機版隱藏表頭 -->
           <thead class="hidden lg:table-header-group sticky top-0 bg-white/95 backdrop-blur-sm z-10 shadow-sm">
             <tr class="text-slate-500 text-sm">
-              <th class="py-3 px-6 font-bold w-28">組別</th>
+              <th class="py-3 px-6 font-bold w-24">組別</th>
               <th class="py-3 px-6 font-bold w-24">編號</th>
               <th class="py-3 px-6 font-bold">姓名</th>
               <th class="py-3 px-6 font-bold text-center">當前狀態</th>
             </tr>
           </thead>
+          <!-- 手機版將改為卡片列表形式呈現 -->
           <tbody id="waitingListTable" class="flex flex-col lg:table-row-group gap-2 lg:gap-0">
             <!-- 由 JS 動態生成 -->
           </tbody>
@@ -141,30 +129,11 @@
 
   </main>
 
-  <!-- 橫式/大螢幕專用：左下角 QR Code 引導區塊 -->
-  <div class="fixed bottom-6 left-6 z-50 hidden lg:flex flex-col items-center gap-2 bg-white p-4 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] border-2 border-slate-100 fade-in transition-transform hover:-translate-y-2 group">
-    <div class="flex items-center gap-1.5 mb-1">
-      <i data-lucide="smartphone" class="w-5 h-5 text-primary"></i>
-      <p class="text-sm font-black text-primary tracking-wide">用手機看更方便</p>
-    </div>
-    <div class="bg-slate-50 p-2 rounded-xl border border-slate-200 group-hover:border-accent transition-colors">
-      <!-- 使用第三方 API 動態產生目標網址的 QR Code -->
-      <img src="https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=https://ekatsiming-dev.github.io/2026PGY/0315visit.html&color=003566&bgcolor=f8fafc" 
-           alt="掃描查詢進度 QR Code" 
-           class="w-24 h-24 mix-blend-multiply">
-    </div>
-    <p class="text-[11px] text-slate-500 font-bold mt-1 tracking-wider">掃描隨時追蹤叫號進度</p>
-  </div>
-
   <script>
     // --- 參數設定 ---
     const API_URL = 'https://script.google.com/macros/s/AKfycbzKLj8037In2HuIuOLHwlB_p6UgFAf3dIWcegnZWKAHsME5iYpdSNxzxgPFw85q5oK2aA/exec';
     let currentSession = new Date().getHours() < 12 ? '上午' : '下午'; 
     let lastDataStr = '';
-    let cachedData = []; // 用於本地重新渲染
-    
-    // 初始化讀取 localStorage 記憶的篩選組別
-    let filteredGroup = localStorage.getItem('filteredGroup') || '';
 
     // --- DOM 綁定 ---
     const preparingList = document.getElementById('preparingList');
@@ -172,7 +141,6 @@
     const timeDisplay = document.getElementById('currentTime');
     const btnMorning = document.getElementById('btnMorning');
     const btnAfternoon = document.getElementById('btnAfternoon');
-    const groupSelector = document.getElementById('groupSelector');
 
     // --- 初始化 ---
     document.addEventListener('DOMContentLoaded', () => {
@@ -183,20 +151,6 @@
       fetchData();
       setInterval(fetchData, 15000);
     });
-
-    // 設定篩選組別並儲存
-    function setFilteredGroup(val) {
-      filteredGroup = val;
-      if(val) {
-        localStorage.setItem('filteredGroup', val);
-      } else {
-        localStorage.removeItem('filteredGroup');
-      }
-      // 選擇後立即重新渲染畫面，不需等待 API
-      if(cachedData.length > 0) {
-        processAndRender(cachedData, true);
-      }
-    }
 
     function updateClock() {
       const now = new Date();
@@ -230,55 +184,25 @@
       return str[0] + '○' + str.substring(2);
     }
 
-    // 手動重整觸發器
-    function manualRefresh() {
-      fetchData(true);
-    }
-
-    async function fetchData(isManual = false) {
-      // 若為手動重整，讓 icon 轉動給予視覺回饋
-      const icons = document.querySelectorAll('.refresh-icon');
-      if (isManual) icons.forEach(i => i.classList.add('animate-spin'));
-
+    async function fetchData() {
       try {
-        // 【關鍵修復】加入時間戳章 (Cache-Busting)，打破瀏覽器對 GET 請求的快取限制
-        const noCacheUrl = `${API_URL}?t=${new Date().getTime()}`;
-        const response = await fetch(noCacheUrl);
+        const response = await fetch(API_URL);
         const result = await response.json();
-        
         if (result.status === 'success') {
-          cachedData = result.data;
           const newDataStr = JSON.stringify(result.data);
-          
-          // 如果是手動更新，或資料確實有變動，就重新渲染畫面
-          if (isManual || newDataStr !== lastDataStr) {
-            processAndRender(cachedData);
+          if (newDataStr !== lastDataStr) {
+            processAndRender(result.data);
             lastDataStr = newDataStr;
           }
         }
       } catch (error) {
         console.error('抓取資料失敗:', error);
-      } finally {
-        // 請求結束後移除轉動動畫
-        if (isManual) icons.forEach(i => i.classList.remove('animate-spin'));
       }
     }
 
-    function processAndRender(data, forceRender = false) {
+    function processAndRender(data) {
       let sessionData = data.filter(c => c['時段'] === currentSession);
 
-      // 1. 動態產生選單的組別選項 (使用全場資料產生，不受篩選影響)
-      const uniqueGroups = [...new Set(sessionData.map(c => c['組別']))].filter(Boolean).sort((a, b) => parseInt(a) - parseInt(b));
-      let optionsHtml = '<option value="">🔍 篩選我的組別 (顯示全部)</option>';
-      uniqueGroups.forEach(g => {
-        optionsHtml += `<option value="${g}" ${g === filteredGroup ? 'selected' : ''}>第 ${g} 組</option>`;
-      });
-      // 只有當選項不同時才更新 DOM，避免影響使用者操作
-      if (groupSelector.innerHTML !== optionsHtml) {
-        groupSelector.innerHTML = optionsHtml;
-      }
-
-      // 2. 排序
       sessionData.sort((a, b) => {
         let gA = parseInt(a['組別']) || 0;
         let gB = parseInt(b['組別']) || 0;
@@ -288,7 +212,6 @@
         return nA - nB;
       });
 
-      // 3. 邏輯判斷：計算全場的報到狀態與準備順位 (必須在過濾前計算，才能確保全域順位正確)
       let preparingCount = 0;
       sessionData = sessionData.map(c => {
         let status = 'not_arrived'; 
@@ -308,64 +231,52 @@
         return { ...c, boardStatus: status, orderInQueue };
       });
 
-      // 4. 根據篩選條件過濾資料供畫面顯示
-      let displayData = sessionData;
-      if (filteredGroup) {
-        displayData = sessionData.filter(c => c['組別'] === filteredGroup);
-      }
-
-      // 5. 渲染畫面
-      renderPreparingList(displayData.filter(c => c.boardStatus === 'preparing'));
-      renderWaitingTable(displayData);
+      renderPreparingList(sessionData.filter(c => c.boardStatus === 'preparing'));
+      renderWaitingTable(sessionData);
     }
 
     function renderPreparingList(preparingData) {
       if (preparingData.length === 0) {
-        let emptyMsg = filteredGroup ? `此組別目前無等候中名單` : `目前無等候中名單`;
         preparingList.innerHTML = `
-          <div class="h-32 lg:h-full flex flex-col items-center justify-center text-slate-400 bg-white rounded-xl lg:rounded-2xl border-2 border-dashed border-slate-200">
-            <i data-lucide="coffee" class="w-10 h-10 lg:w-16 lg:h-16 mb-2 lg:mb-4 opacity-40"></i>
-            <p class="text-lg lg:text-xl font-bold">${emptyMsg}</p>
+          <div class="h-32 lg:h-full flex flex-col items-center justify-center text-slate-300 bg-white rounded-xl lg:rounded-2xl border-2 border-dashed border-slate-200">
+            <i data-lucide="coffee" class="w-10 h-10 lg:w-16 lg:h-16 mb-2 lg:mb-4 opacity-50"></i>
+            <p class="text-lg lg:text-2xl font-bold">目前無等候中名單</p>
           </div>
         `;
         lucide.createIcons();
         return;
       }
 
-      preparingList.innerHTML = preparingData.map((c, index) => {
-        // 移除了追蹤的高亮樣式，回歸統一的質感風格
-        return `
-          <div class="bg-highlight border-2 border-accent rounded-xl lg:rounded-2xl p-4 lg:p-6 shadow-md lg:shadow-lg pulse-bg fade-in relative overflow-hidden flex flex-col justify-center transition-all">
-            <div class="absolute top-0 right-0 bg-accent text-primary font-black text-sm lg:text-xl px-3 py-1 lg:px-5 lg:py-2 rounded-bl-xl lg:rounded-bl-2xl">
-              全場順位 ${c.orderInQueue}
-            </div>
-            <div class="flex items-end gap-3 lg:gap-4 mb-2 lg:mb-4 mt-4 lg:mt-2">
-              <div class="text-5xl lg:text-6xl font-black text-primary tracking-wider">${c['NO'] || c['ID']}</div>
-              <div class="text-lg lg:text-2xl font-bold text-slate-600 mb-1 lg:mb-1 flex items-center gap-1">
-                第 ${c['組別']} 組
-              </div>
-            </div>
-            <div class="text-2xl lg:text-4xl font-black text-slate-800 mb-4 lg:mb-6 tracking-widest">${maskName(c['姓名'])}</div>
-            
-            <div class="bg-primary text-white rounded-lg lg:rounded-xl p-3 lg:p-4 flex items-center justify-center gap-2 lg:gap-3 shadow-inner">
-              <i data-lucide="arrow-right-circle" class="w-5 h-5 lg:w-8 lg:h-8 text-accent animate-bounce"></i>
-              <span class="text-sm lg:text-2xl font-bold tracking-wider">請到會議廳等待</span>
-            </div>
+      preparingList.innerHTML = preparingData.map((c, index) => `
+        <div class="bg-highlight border-2 border-accent rounded-xl lg:rounded-2xl p-4 lg:p-6 shadow-md lg:shadow-lg pulse-bg fade-in relative overflow-hidden flex flex-col justify-center">
+          <div class="absolute top-0 right-0 bg-accent text-primary font-black text-sm lg:text-xl px-3 py-1 lg:px-5 lg:py-2 rounded-bl-xl lg:rounded-bl-2xl">
+            順位 ${index + 1}
           </div>
-        `;
-      }).join('');
+          <div class="flex items-end gap-3 lg:gap-4 mb-2 lg:mb-4 mt-4 lg:mt-2">
+            <div class="text-5xl lg:text-6xl font-black text-primary tracking-wider">${c['NO'] || c['ID']}</div>
+            <div class="text-lg lg:text-2xl font-bold text-slate-600 mb-1 lg:mb-1">第 ${c['組別']} 組</div>
+          </div>
+          <div class="text-2xl lg:text-4xl font-black text-slate-800 mb-4 lg:mb-6 tracking-widest">${maskName(c['姓名'])}</div>
+          
+          <div class="bg-primary text-white rounded-lg lg:rounded-xl p-3 lg:p-4 flex items-center justify-center gap-2 lg:gap-3 shadow-inner">
+            <i data-lucide="arrow-right-circle" class="w-5 h-5 lg:w-8 lg:h-8 text-accent animate-bounce"></i>
+            <span class="text-sm lg:text-2xl font-bold tracking-wider">請到會議廳等待</span>
+          </div>
+        </div>
+      `).join('');
       lucide.createIcons();
     }
 
-    function renderWaitingTable(displayData) {
-      if (displayData.length === 0) {
-        waitingListTable.innerHTML = `<tr class="flex lg:table-row"><td colspan="4" class="py-12 text-center text-slate-400 font-bold text-lg w-full">查無考生資料</td></tr>`;
+    function renderWaitingTable(allSessionData) {
+      if (allSessionData.length === 0) {
+        waitingListTable.innerHTML = `<tr class="flex lg:table-row"><td colspan="4" class="py-12 text-center text-slate-400 font-bold text-lg w-full">此時段無考生資料</td></tr>`;
         return;
       }
 
-      waitingListTable.innerHTML = displayData.map(c => {
+      waitingListTable.innerHTML = allSessionData.map(c => {
         let statusBadge = '';
-        let rowClass = `flex flex-col lg:table-row bg-white lg:bg-transparent border lg:border-none lg:border-b lg:border-slate-100 transition-colors text-base lg:text-lg fade-in rounded-xl lg:rounded-none shadow-sm lg:shadow-none p-3 lg:p-0 border-slate-100 hover:bg-slate-50 `;
+        // 關鍵修改：將 tr 預設改為 flex-col (卡片)，電腦版才恢復 table-row
+        let rowClass = 'flex flex-col lg:table-row bg-white lg:bg-transparent border border-slate-100 lg:border-none lg:border-b lg:border-slate-100 hover:bg-slate-50 transition-colors text-base lg:text-lg fade-in rounded-xl lg:rounded-none shadow-sm lg:shadow-none p-3 lg:p-0 ';
 
         switch (c.boardStatus) {
           case 'preparing':
@@ -385,6 +296,7 @@
             break;
         }
 
+        // 關鍵修改：td 加上 flex 與 justify-between，並插入 lg:hidden 的行動版標籤
         return `
           <tr class="${rowClass}">
             <td class="flex justify-between items-center lg:table-cell py-1.5 lg:py-4 px-2 lg:px-6 font-bold text-slate-600 border-b border-slate-50 lg:border-none">
