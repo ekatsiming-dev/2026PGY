@@ -56,7 +56,7 @@
         <i data-lucide="link"></i> 系統連線設定
       </h2>
       <p class="text-sm text-slate-500 mb-6">目前已自動綁定您的專屬資料庫。若未來有更換，請在此更新 Google Apps Script 網頁應用程式網址。</p>
-      <input type="text" id="apiUrlInput" placeholder="https://script.google.com/macros/s/AKfycbzKLj8037In2HuIuOLHwlB_p6UgFAf3dIWcegnZWKAHsME5iYpdSNxzxgPFw85q5oK2aA/exec" class="w-full px-4 py-3 rounded-lg border border-slate-200 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all mb-4 bg-slate-50">
+      <input type="text" id="apiUrlInput" value="https://script.google.com/macros/s/AKfycbzKLj8037In2HuIuOLHwlB_p6UgFAf3dIWcegnZWKAHsME5iYpdSNxzxgPFw85q5oK2aA/exec" placeholder="https://script.google.com/macros/s/..." class="w-full px-4 py-3 rounded-lg border border-slate-200 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all mb-4 bg-slate-50 font-mono text-xs">
       <div class="flex justify-end gap-3">
         <button onclick="closeSetupModal()" class="px-6 py-2 rounded-lg font-medium text-slate-500 hover:bg-slate-100 transition-colors">取消</button>
         <button id="saveApiBtn" class="bg-primary hover:bg-blue-900 text-white px-6 py-2 rounded-lg font-medium transition-colors shadow-sm">
@@ -100,17 +100,43 @@
       <!-- 由 JS 動態生成 -->
     </div>
 
-    <!-- 控制列 -->
-    <div class="flex flex-col md:flex-row justify-between items-center gap-4 bg-white p-4 rounded-xl shadow-sm border border-slate-100">
-      <div class="flex gap-2 w-full md:w-auto" id="filterContainer">
-        <button data-session="全部" class="filter-btn px-4 py-2 rounded-lg text-sm font-medium transition-colors flex-1 md:flex-none bg-primary text-white">全部</button>
-        <button data-session="上午" class="filter-btn px-4 py-2 rounded-lg text-sm font-medium transition-colors flex-1 md:flex-none bg-slate-100 text-slate-600 hover:bg-slate-200">上午</button>
-        <button data-session="下午" class="filter-btn px-4 py-2 rounded-lg text-sm font-medium transition-colors flex-1 md:flex-none bg-slate-100 text-slate-600 hover:bg-slate-200">下午</button>
+    <!-- 控制列 (加入多重篩選功能) -->
+    <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 bg-white p-4 rounded-xl shadow-sm border border-slate-100">
+      
+      <!-- 左側：時段與組別篩選 -->
+      <div class="flex flex-wrap gap-3 w-full lg:w-auto items-center">
+        <!-- 時段切換 -->
+        <div class="flex gap-1 w-full sm:w-auto bg-slate-100 p-1 rounded-lg" id="filterContainer">
+          <button data-session="全部" class="filter-btn px-4 py-1.5 rounded-md text-sm font-medium transition-colors flex-1 sm:flex-none bg-primary text-white shadow-sm">全部</button>
+          <button data-session="上午" class="filter-btn px-4 py-1.5 rounded-md text-sm font-medium transition-colors flex-1 sm:flex-none text-slate-600 hover:bg-slate-200">上午</button>
+          <button data-session="下午" class="filter-btn px-4 py-1.5 rounded-md text-sm font-medium transition-colors flex-1 sm:flex-none text-slate-600 hover:bg-slate-200">下午</button>
+        </div>
+
+        <!-- 組別下拉選單 -->
+        <div class="relative w-full sm:w-auto min-w-[120px]">
+          <select id="groupFilter" class="w-full appearance-none pl-4 pr-10 py-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all bg-slate-50 text-slate-700 text-sm font-medium cursor-pointer">
+            <option value="全部">全部組別</option>
+            <!-- 由 JS 動態生成 -->
+          </select>
+          <i data-lucide="chevron-down" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4 pointer-events-none"></i>
+        </div>
       </div>
-      <div class="relative w-full md:w-72">
-        <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4"></i>
-        <input type="text" id="searchInput" placeholder="搜尋姓名、ID 或編號..." class="w-full pl-10 pr-4 py-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all bg-slate-50">
+
+      <!-- 右側：尾數與關鍵字搜尋 -->
+      <div class="flex flex-wrap gap-3 w-full lg:w-auto items-center">
+        <!-- 身分證/ID 尾數搜尋 -->
+        <div class="relative w-full sm:w-40">
+          <i data-lucide="hash" class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4"></i>
+          <input type="text" id="idSuffixInput" placeholder="身分證/ID尾數" class="w-full pl-9 pr-4 py-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all bg-slate-50 text-sm">
+        </div>
+
+        <!-- 一般關鍵字搜尋 -->
+        <div class="relative w-full sm:w-64">
+          <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4"></i>
+          <input type="text" id="searchInput" placeholder="搜尋姓名、完整編號..." class="w-full pl-9 pr-4 py-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all bg-slate-50 text-sm">
+        </div>
       </div>
+
     </div>
 
     <!-- 名單表格 -->
@@ -142,9 +168,8 @@
     // --- 應用程式狀態 ---
     let candidates = [];
     let filterSession = '全部';
-    let searchTerm = '';
     
-    // 將您提供的專屬 URL 直接設定為預設值
+    // 直接綁定專屬 URL
     const DEFAULT_API_URL = 'https://script.google.com/macros/s/AKfycbzKLj8037In2HuIuOLHwlB_p6UgFAf3dIWcegnZWKAHsME5iYpdSNxzxgPFw85q5oK2aA/exec';
     const STORAGE_KEY = 'gas_api_url';
 
@@ -156,7 +181,11 @@
     const loadingOverlay = document.getElementById('loadingOverlay');
     const dashboardContainer = document.getElementById('dashboardContainer');
     const tableBody = document.getElementById('tableBody');
+    
+    // 篩選器 DOM
     const searchInput = document.getElementById('searchInput');
+    const idSuffixInput = document.getElementById('idSuffixInput');
+    const groupFilter = document.getElementById('groupFilter');
     const filterBtns = document.querySelectorAll('.filter-btn');
 
     // --- 初始化 ---
@@ -166,20 +195,22 @@
       
       // 事件綁定
       saveApiBtn.addEventListener('click', saveApiUrl);
-      searchInput.addEventListener('input', (e) => {
-        searchTerm = e.target.value.toLowerCase();
-        renderTable();
-      });
+      
+      // 綁定所有篩選器的事件
+      searchInput.addEventListener('input', renderTable);
+      idSuffixInput.addEventListener('input', renderTable);
+      groupFilter.addEventListener('change', renderTable);
+
       filterBtns.forEach(btn => {
         btn.addEventListener('click', (e) => {
           filterSession = e.target.dataset.session;
           // 更新按鈕樣式
           filterBtns.forEach(b => {
-            b.classList.remove('bg-primary', 'text-white');
-            b.classList.add('bg-slate-100', 'text-slate-600');
+            b.classList.remove('bg-primary', 'text-white', 'shadow-sm');
+            b.classList.add('text-slate-600');
           });
-          e.target.classList.remove('bg-slate-100', 'text-slate-600');
-          e.target.classList.add('bg-primary', 'text-white');
+          e.target.classList.remove('text-slate-600');
+          e.target.classList.add('bg-primary', 'text-white', 'shadow-sm');
           renderTable();
         });
       });
@@ -187,15 +218,15 @@
 
     // --- 設定與連線管理 ---
     function checkSetup() {
-      // 檢查本地是否有儲存的網址，如果沒有，就自動寫入預設網址
+      // 確保一律使用寫死的 URL 作為預設值
       let url = localStorage.getItem(STORAGE_KEY);
-      if (!url) {
+      if (!url || url !== DEFAULT_API_URL) {
         url = DEFAULT_API_URL;
         localStorage.setItem(STORAGE_KEY, url);
       }
       apiUrlInput.value = url;
       
-      // 直接執行連線，不彈出設定視窗
+      // 直接執行連線
       fetchData();
     }
 
@@ -246,6 +277,7 @@
         
         if (result.status === 'success') {
           candidates = result.data;
+          updateGroupDropdown(); // 載入資料後，動態更新組別選單
           renderDashboard();
           renderTable();
           updateSyncStatus(false);
@@ -268,11 +300,11 @@
       const now = new Date();
       const timeString = now.toLocaleTimeString('zh-TW', { hour12: false });
       
-      // 樂觀更新 (Optimistic UI Update) - 先在本地改變畫面，讓使用者感覺瞬間完成
+      // 樂觀更新 (Optimistic UI Update)
       const targetIndex = candidates.findIndex(c => c._rowIndex === rowIndex);
       if (targetIndex === -1) return;
 
-      const originalData = JSON.parse(JSON.stringify(candidates[targetIndex])); // 備份以防失敗
+      const originalData = JSON.parse(JSON.stringify(candidates[targetIndex]));
       
       if (type === 'checkin') {
         candidates[targetIndex].status_checkin = !isUndo;
@@ -290,12 +322,11 @@
       renderTable();
       updateSyncStatus(true);
 
-      // 發送至後端
       try {
         const payload = { rowIndex, type, isUndo, timeString };
         const response = await fetch(url, {
           method: 'POST',
-          headers: { 'Content-Type': 'text/plain;charset=utf-8' }, // 避開預檢請求
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
           body: JSON.stringify(payload)
         });
         
@@ -306,14 +337,29 @@
       } catch (error) {
         console.error('Update error:', error);
         alert('雲端更新失敗，資料將恢復原狀。請檢查網路連線。');
-        candidates[targetIndex] = originalData; // 發生錯誤時還原
+        candidates[targetIndex] = originalData;
         renderDashboard();
         renderTable();
         updateSyncStatus(false, true);
       }
     }
 
-    // --- 畫面渲染 ---
+    // --- 畫面渲染與邏輯 ---
+    function updateGroupDropdown() {
+      // 自動從目前名單中抓取所有不重複的「組別」，並進行排序
+      const currentVal = groupFilter.value;
+      const groups = [...new Set(candidates.map(c => String(c['組別'])).filter(g => g && g !== 'undefined'))]
+                     .sort((a, b) => parseInt(a) - parseInt(b) || 0);
+
+      groupFilter.innerHTML = '<option value="全部">全部組別</option>' + 
+                              groups.map(g => `<option value="${g}">第 ${g} 組</option>`).join('');
+      
+      // 若更新資料後原本選的組別還存在，則保留選擇
+      if (groups.includes(currentVal)) {
+        groupFilter.value = currentVal;
+      }
+    }
+
     function renderDashboard() {
       const calcStats = (sessionStr) => {
         const sessionData = candidates.filter(c => c['時段'] === sessionStr);
@@ -378,11 +424,32 @@
     }
 
     function renderTable() {
+      // 取得所有篩選條件
+      const keyword = searchInput.value.toLowerCase().trim();
+      const idSuffix = idSuffixInput.value.trim();
+      const groupVal = groupFilter.value;
+
       const filtered = candidates.filter(c => {
+        // 1. 時段篩選
         const matchSession = filterSession === '全部' || c['時段'] === filterSession;
+        
+        // 2. 組別篩選
+        const matchGroup = groupVal === '全部' || String(c['組別']) === groupVal;
+
+        // 3. 尾數篩選 (同時比對 ID 與 身分證字號)
+        let matchSuffix = true;
+        if (idSuffix !== '') {
+          const sid = String(c['身分證字號'] || '');
+          const idStr = String(c['ID'] || '');
+          // 只要其中一個欄位的尾數符合即通過
+          matchSuffix = sid.endsWith(idSuffix) || idStr.endsWith(idSuffix);
+        }
+
+        // 4. 關鍵字搜尋 (姓名、完整ID或編號)
         const searchStr = `${c['姓名'] || ''} ${c['ID'] || ''} ${c['NO'] || ''}`.toLowerCase();
-        const matchSearch = searchStr.includes(searchTerm);
-        return matchSession && matchSearch;
+        const matchKeyword = searchStr.includes(keyword);
+
+        return matchSession && matchGroup && matchSuffix && matchKeyword;
       });
 
       if (filtered.length === 0) {
