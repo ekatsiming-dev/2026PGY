@@ -3,7 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>甄選進度即時看板</title>
+  <!-- 動態注入 Theme Color 以匹配 MCM 主色 -->
+  <meta name="theme-color" content="#114B5F">
+  <title>甄選進度即時看板 | MCM Edition</title>
   
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -12,10 +14,12 @@
       theme: {
         extend: {
           colors: {
-            primary: '#003566',
-            accent: '#fca311',
-            highlight: '#fef9c3',
-            surface: '#f8fafc'
+            primary: '#114B5F',   // 深邃孔雀藍
+            accent: '#F4A261',    // 沙丘芥末黃 (無紅)
+            highlight: '#E8DAB2', // 溫潤米褐
+            surface: '#F9F7F3',   // 燕麥米白
+            alert: '#593C8F',     // 深爵士紫 (取代紅色警示)
+            alertLight: '#F3EFFF' // 淺紫背景
           },
           fontFamily: {
             sans: ['Inter', 'Noto Sans TC', 'sans-serif']
@@ -32,47 +36,68 @@
   <script src="https://unpkg.com/lucide@latest"></script>
 
   <style>
-    body { background-color: #f8fafc; overflow-x: hidden; }
-    .fade-in { animation: fadeIn 0.4s ease-in-out; }
-    @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
-    .pulse-bg { animation: pulseBg 2s infinite; }
-    @keyframes pulseBg { 0% { box-shadow: 0 0 0 0 rgba(252, 163, 17, 0.4); } 70% { box-shadow: 0 0 0 8px rgba(252, 163, 17, 0); } 100% { box-shadow: 0 0 0 0 rgba(252, 163, 17, 0); } }
-    .pulse-red { animation: pulseRed 2s infinite; }
-    @keyframes pulseRed { 0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); } 70% { box-shadow: 0 0 0 8px rgba(239, 68, 68, 0); } 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); } }
+    body { background-color: #F9F7F3; overflow-x: hidden; }
+    
+    /* 轉場與進場動畫 */
+    .fade-in { animation: fadeIn 0.5s cubic-bezier(0.4, 0, 0.2, 1); }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+    
+    /* MCM 點綴光暈動畫 */
+    .pulse-bg { animation: pulseBg 2.5s infinite; }
+    @keyframes pulseBg { 0% { box-shadow: 0 0 0 0 rgba(244, 162, 97, 0.4); } 70% { box-shadow: 0 0 0 8px rgba(244, 162, 97, 0); } 100% { box-shadow: 0 0 0 0 rgba(244, 162, 97, 0); } }
+    
+    .pulse-alert { animation: pulseAlert 2s infinite; }
+    @keyframes pulseAlert { 0% { box-shadow: 0 0 0 0 rgba(89, 60, 143, 0.4); } 70% { box-shadow: 0 0 0 8px rgba(89, 60, 143, 0); } 100% { box-shadow: 0 0 0 0 rgba(89, 60, 143, 0); } }
     
     /* 隱藏捲軸但保留捲動功能 */
     .no-scrollbar::-webkit-scrollbar { display: none; }
     .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+    /* MCM 裝飾玻璃擬態 */
+    .glass-panel {
+      background: rgba(255, 255, 255, 0.85);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+    }
   </style>
 </head>
-<body class="font-sans text-slate-800 min-h-screen lg:h-screen flex flex-col">
+<body class="font-sans text-slate-800 min-h-screen lg:h-screen flex flex-col relative">
+
+  <!-- MCM 幾何背景裝飾 (Creative Overdrive) -->
+  <div class="fixed inset-0 overflow-hidden pointer-events-none z-[-1]">
+    <!-- 右上角有機圓弧 -->
+    <div class="absolute -top-[15%] -right-[10%] w-[600px] h-[600px] rounded-full bg-highlight/40 blur-3xl opacity-70 animate-[spin_90s_linear_infinite]"></div>
+    <!-- 左下角膠囊幾何 -->
+    <div class="absolute top-[50%] -left-[10%] w-[500px] h-[250px] rounded-[120px] bg-accent/10 blur-3xl opacity-60 transform -rotate-12"></div>
+  </div>
 
   <!-- Header -->
-  <header class="bg-primary text-white py-2 lg:py-4 px-3 lg:px-6 shadow-lg flex flex-col md:flex-row justify-between items-center z-20 shrink-0 gap-2 lg:gap-3">
+  <header class="bg-primary text-white py-2 lg:py-4 px-3 lg:px-6 shadow-md flex flex-col md:flex-row justify-between items-center z-20 shrink-0 gap-2 lg:gap-3 border-b-4 border-accent">
     <div class="flex items-center gap-3 w-full md:w-auto justify-center md:justify-start">
       <div class="text-left">
-        <h1 class="text-base lg:text-2xl font-black tracking-widest text-white flex items-center gap-2">
+        <h1 class="text-base lg:text-2xl font-black tracking-widest text-white flex items-center gap-2 drop-shadow-sm">
+          <i data-lucide="layout-dashboard" class="w-5 h-5 lg:w-6 lg:h-6 text-accent"></i>
           甄選面談進度看板
         </h1>
-        <div class="text-highlight text-[10px] lg:text-xs mt-0.5 tracking-wider opacity-90 flex items-center gap-2 hidden lg:flex">
-          <span>FOR INTERVIEWER</span>
+        <div class="text-highlight text-[10px] lg:text-xs mt-0.5 tracking-widest opacity-90 flex items-center gap-2 hidden lg:flex font-mono">
+          <span>// FOR INTERVIEWER //</span>
         </div>
       </div>
     </div>
     
     <div class="flex flex-row items-center gap-3 lg:gap-5 w-full md:w-auto justify-between md:justify-end">
       <!-- 時段切換 -->
-      <div class="bg-white/10 p-1 rounded-lg flex gap-1 w-auto justify-center">
-        <button onclick="setSession('上午')" id="btnMorning" class="px-3 lg:px-5 py-1 lg:py-1.5 rounded-md font-bold text-xs lg:text-sm transition-colors bg-accent text-primary">上午場</button>
-        <button onclick="setSession('下午')" id="btnAfternoon" class="px-3 lg:px-5 py-1 lg:py-1.5 rounded-md font-bold text-xs lg:text-sm transition-colors text-white hover:bg-white/20">下午場</button>
+      <div class="bg-white/10 p-1 rounded-lg flex gap-1 w-auto justify-center backdrop-blur-sm">
+        <button onclick="setSession('上午')" id="btnMorning" class="px-3 lg:px-5 py-1 lg:py-1.5 rounded-md font-bold text-xs lg:text-sm transition-all duration-300 bg-accent text-primary shadow-sm">上午場</button>
+        <button onclick="setSession('下午')" id="btnAfternoon" class="px-3 lg:px-5 py-1 lg:py-1.5 rounded-md font-bold text-xs lg:text-sm transition-all duration-300 text-white hover:bg-white/20">下午場</button>
       </div>
       <!-- 時鐘與更新提示 -->
       <div class="text-right flex flex-col items-end">
-        <div id="currentTime" class="text-base lg:text-xl font-bold font-mono text-highlight">00:00:00</div>
-        <div class="text-[9px] lg:text-[10px] text-slate-300 flex items-center gap-1 lg:gap-2 mt-0.5">
+        <div id="currentTime" class="text-base lg:text-xl font-bold font-mono text-highlight drop-shadow-md">00:00:00</div>
+        <div class="text-[9px] lg:text-[10px] text-highlight/80 flex items-center gap-1 lg:gap-2 mt-0.5">
           <span class="flex items-center gap-1 hidden sm:flex"><i data-lucide="refresh-cw" class="w-3 h-3 animate-spin hidden" id="autoRefreshIcon"></i> 自動每15秒更新</span>
-          <button onclick="manualRefresh()" class="bg-white/20 hover:bg-white/30 text-white px-1.5 py-0.5 rounded transition-colors flex items-center gap-1">
-            <i data-lucide="rotate-cw" id="manualRefreshIcon" class="w-2.5 h-2.5 lg:w-3 lg:h-3"></i> <span class="hidden lg:inline">立即更新</span>
+          <button onclick="manualRefresh()" class="bg-white/10 hover:bg-white/25 text-white px-2 py-0.5 rounded transition-colors flex items-center gap-1 border border-white/20">
+            <i data-lucide="rotate-cw" id="manualRefreshIcon" class="w-2.5 h-2.5 lg:w-3 lg:h-3"></i> <span class="hidden lg:inline tracking-wider">立即更新</span>
           </button>
         </div>
       </div>
@@ -80,108 +105,105 @@
   </header>
 
   <!-- 主要內容區 -->
-  <main class="flex-1 flex flex-col lg:flex-row p-2 lg:p-4 lg:overflow-hidden max-w-[1400px] mx-auto w-full gap-2 lg:gap-4 relative">
+  <main class="flex-1 flex flex-col lg:flex-row p-2 lg:p-5 lg:overflow-hidden max-w-[1440px] mx-auto w-full gap-3 lg:gap-6 relative">
     
     <!-- 左側邊欄：QR Code 與 各組進度 -->
-    <aside class="w-full lg:w-[280px] xl:w-[320px] flex flex-col gap-2 lg:gap-4 shrink-0">
+    <aside class="w-full lg:w-[300px] xl:w-[340px] flex flex-col gap-3 lg:gap-5 shrink-0 z-10">
       
-      <!-- QR Code 區塊 (高度極致壓縮版) -->
-      <div class="bg-white rounded-xl shadow-lg border border-slate-100 p-2.5 lg:p-4 flex flex-col shrink-0 gap-2 lg:gap-3">
+      <!-- QR Code 區塊 -->
+      <div class="glass-panel rounded-2xl shadow-lg border border-white p-3 lg:p-5 flex flex-col shrink-0 gap-2 lg:gap-4 transition-transform hover:-translate-y-1 duration-300">
         
-        <!-- 手機看進度標題 (已調整為 text-slate-800) -->
-        <h3 class="font-bold text-slate-800 flex items-center justify-center gap-1.5 text-sm lg:text-base">
+        <h3 class="font-black text-primary flex items-center justify-center gap-2 text-sm lg:text-base tracking-widest">
           <i data-lucide="smartphone" class="w-4 h-4 lg:w-5 lg:h-5 text-accent"></i> 手機即時看
         </h3>
 
-        <!-- 內容佈局：手機版水平並排，電腦版垂直堆疊 -->
-        <div class="flex flex-row lg:flex-col items-center gap-2 lg:gap-3">
+        <div class="flex flex-row lg:flex-col items-center gap-3 lg:gap-4">
           <!-- QR Code 圖片 -->
-          <div class="bg-slate-50 p-1.5 lg:p-2 rounded-xl border border-slate-200 shadow-inner shrink-0">
-            <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&margin=1&data=https://ekatsiming-dev.github.io/2026PGY/0315visit.html" alt="手機版 QR Code" class="w-16 h-16 sm:w-20 sm:h-20 lg:w-32 lg:h-32 object-contain">
+          <div class="bg-white p-2 lg:p-3 rounded-2xl border border-highlight shadow-sm shrink-0">
+            <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&margin=1&data=https://ekatsiming-dev.github.io/2026PGY/0315visit.html" alt="手機版 QR Code" class="w-16 h-16 sm:w-20 sm:h-20 lg:w-36 lg:h-36 object-contain rounded-lg">
           </div>
           
           <!-- 右側/下方資訊區：停車與議程 -->
-          <div class="flex flex-col flex-1 w-full gap-1.5 lg:gap-2 justify-center">
+          <div class="flex flex-col flex-1 w-full gap-2 justify-center">
             <!-- 院內汽車停車優惠區塊 -->
-            <div class="w-full bg-highlight/40 border border-accent/20 rounded-md p-1.5 lg:p-2.5 flex items-start gap-1 lg:gap-1.5 text-left shadow-sm">
-              <i data-lucide="car" class="w-3.5 h-3.5 lg:w-4 lg:h-4 text-accent shrink-0 mt-0.5"></i>
+            <div class="w-full bg-surface border border-highlight rounded-xl p-2 lg:p-3 flex items-start gap-2 text-left shadow-sm">
+              <i data-lucide="car" class="w-4 h-4 lg:w-5 lg:h-5 text-accent shrink-0 mt-0.5"></i>
               <div class="text-[10px] lg:text-xs text-slate-600 font-medium leading-tight lg:leading-snug">
-                <strong class="text-primary block mb-0.5">院內汽車停車優惠</strong>
+                <strong class="text-primary block mb-0.5 tracking-wider">院內汽車停車優惠</strong>
                 憑識別證至警衛室折抵。
               </div>
             </div>
             
             <!-- 活動議程展開按鈕 -->
-            <button onclick="toggleAgendaModal()" class="w-full bg-slate-50 hover:bg-slate-100 text-primary border border-slate-200 shadow-sm font-bold py-1.5 lg:py-2.5 px-2 rounded-md text-[11px] lg:text-sm transition-all duration-200 flex items-center justify-center gap-1 lg:gap-1.5 group">
-              <i data-lucide="calendar-days" class="w-3.5 h-3.5 lg:w-4 lg:h-4 text-accent group-hover:scale-110 transition-transform"></i> <span class="whitespace-nowrap">查看今日議程</span>
+            <button onclick="toggleAgendaModal()" class="w-full bg-white hover:bg-highlight/30 text-primary border border-highlight shadow-sm font-bold py-2 lg:py-3 px-2 rounded-xl text-[11px] lg:text-sm transition-all duration-200 flex items-center justify-center gap-1.5 group">
+              <i data-lucide="calendar-days" class="w-4 h-4 lg:w-5 lg:h-5 text-accent group-hover:scale-110 transition-transform"></i> <span class="tracking-widest">查看今日議程</span>
             </button>
           </div>
         </div>
       </div>
 
       <!-- 各組面談進度區塊 -->
-      <div class="bg-white rounded-xl shadow-lg border border-slate-100 flex flex-col flex-1 lg:overflow-hidden">
-        <div class="bg-slate-50 py-2 px-3 lg:py-3 lg:px-4 border-b border-slate-200 shrink-0">
-          <!-- 各組進度標題 (已調整為 text-slate-800) -->
-          <h3 class="font-bold text-slate-800 flex items-center gap-1.5 lg:gap-2 text-[13px] lg:text-base">
-            <i data-lucide="bar-chart-2" class="w-4 h-4 lg:w-5 lg:h-5 text-accent"></i> 各組進度 (完成面談數/總數)
+      <div class="glass-panel rounded-2xl shadow-lg border border-white flex flex-col flex-1 lg:overflow-hidden transition-transform hover:-translate-y-1 duration-300">
+        <div class="bg-primary/5 py-3 px-4 lg:py-4 lg:px-5 border-b border-primary/10 shrink-0">
+          <h3 class="font-black text-primary flex items-center gap-2 text-[13px] lg:text-base tracking-widest">
+            <i data-lucide="bar-chart-2" class="w-4 h-4 lg:w-5 lg:h-5 text-accent"></i> 面談進度
+            <span class="text-xs font-normal text-slate-500 ml-auto hidden sm:inline">(完成/總數)</span>
           </h3>
         </div>
         <!-- 進度條列表 -->
-        <div class="p-2.5 lg:p-4 flex-1 overflow-y-auto no-scrollbar" id="groupProgressContainer">
-          <div class="text-center text-slate-400 text-sm py-4"><i data-lucide="loader-2" class="w-5 h-5 animate-spin mx-auto mb-1 text-accent"></i>計算中...</div>
+        <div class="p-3 lg:p-5 flex-1 overflow-y-auto no-scrollbar" id="groupProgressContainer">
+          <div class="text-center text-slate-400 text-sm py-4"><i data-lucide="loader-2" class="w-5 h-5 animate-spin mx-auto mb-2 text-accent"></i>載入進度中...</div>
         </div>
       </div>
 
     </aside>
 
     <!-- 右側主要區：現場候位名單 -->
-    <div class="w-full flex flex-col lg:h-full bg-white rounded-xl shadow-lg border border-slate-100 lg:overflow-hidden relative flex-1">
+    <div class="w-full flex flex-col lg:h-full glass-panel rounded-2xl shadow-xl border border-white lg:overflow-hidden relative flex-1 z-10">
       
       <!-- 表頭與過濾控制區 -->
-      <div class="bg-slate-50 py-2 lg:py-3 px-3 lg:px-5 border-b border-slate-200 flex flex-col lg:flex-row justify-between items-start lg:items-center gap-2 lg:gap-3 shrink-0 z-10">
-        <div class="flex flex-wrap items-center gap-3 w-full lg:w-auto justify-between lg:justify-start">
-          <!-- 主區塊標題保留 primary 色調，建立層次區隔 -->
-          <h2 class="text-sm lg:text-xl font-black text-primary flex items-center gap-1.5 lg:gap-2">
-            <i data-lucide="users" class="w-4 h-4 lg:w-5 lg:h-5 text-accent"></i> 現場候位名單
+      <div class="bg-primary/5 py-3 lg:py-4 px-4 lg:px-6 border-b border-primary/10 flex flex-col lg:flex-row justify-between items-start lg:items-center gap-3 shrink-0 z-10">
+        <div class="flex flex-wrap items-center gap-4 w-full lg:w-auto justify-between lg:justify-start">
+          <h2 class="text-base lg:text-xl font-black text-primary flex items-center gap-2 tracking-widest">
+            <i data-lucide="users" class="w-5 h-5 lg:w-6 lg:h-6 text-accent"></i> 現場候位名單
           </h2>
           
-          <div class="flex items-center gap-2 lg:gap-3">
+          <div class="flex items-center gap-2 lg:gap-4">
             <!-- 組別篩選器 -->
             <div class="relative">
-              <select id="groupFilter" onchange="applyFilter()" class="appearance-none bg-white border border-slate-300 text-slate-700 font-bold py-1 lg:py-1.5 pl-2 lg:pl-3 pr-6 lg:pr-8 rounded-md lg:rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent text-[11px] lg:text-sm cursor-pointer">
+              <select id="groupFilter" onchange="applyFilter()" class="appearance-none bg-white border border-highlight text-primary font-bold py-1.5 lg:py-2 pl-3 lg:pl-4 pr-8 lg:pr-10 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent text-xs lg:text-sm cursor-pointer transition-shadow hover:shadow-md">
                 <option value="ALL">全部組別</option>
               </select>
-              <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-slate-500">
-                <i data-lucide="chevron-down" class="w-3 h-3 lg:w-4 lg:h-4"></i>
+              <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-accent">
+                <i data-lucide="chevron-down" class="w-4 h-4"></i>
               </div>
             </div>
 
             <!-- 顯示全部勾選框 -->
-            <label class="flex items-center gap-1.5 lg:gap-2 cursor-pointer bg-white px-2 lg:px-3 py-1 lg:py-1.5 rounded-md lg:rounded-lg border border-slate-200 shadow-sm hover:bg-slate-50 transition-colors select-none">
-              <input type="checkbox" id="showAllCheckbox" onchange="applyFilter()" class="w-3 h-3 lg:w-4 lg:h-4 rounded text-accent focus:ring-accent accent-accent cursor-pointer">
-              <span class="text-[11px] lg:text-sm font-bold text-slate-700">完整名單</span>
+            <label class="flex items-center gap-2 cursor-pointer bg-white px-3 lg:px-4 py-1.5 lg:py-2 rounded-xl border border-highlight shadow-sm hover:bg-surface transition-all duration-200 select-none group">
+              <input type="checkbox" id="showAllCheckbox" onchange="applyFilter()" class="w-4 h-4 rounded text-primary focus:ring-primary accent-primary cursor-pointer">
+              <span class="text-xs lg:text-sm font-bold text-primary group-hover:text-accent transition-colors tracking-wide">完整名單</span>
             </label>
           </div>
         </div>
         
         <!-- 狀態圖例區 -->
-        <div class="flex flex-wrap items-center gap-2 lg:gap-3 text-[10px] lg:text-xs font-medium w-full lg:w-auto justify-start lg:justify-end">
-          <span class="flex items-center gap-1 text-slate-500"><span class="w-2 h-2 lg:w-2.5 lg:h-2.5 rounded-full bg-slate-200"></span> 尚未報到</span>
-          <span class="flex items-center gap-1 text-emerald-600"><span class="w-2 h-2 lg:w-2.5 lg:h-2.5 rounded-full bg-emerald-100 border border-emerald-400"></span> 等候中</span>
-          <span class="flex items-center gap-1 text-slate-300"><span class="w-2 h-2 lg:w-2.5 lg:h-2.5 rounded-full bg-slate-50 border border-slate-200"></span> 面談完成</span>
+        <div class="flex flex-wrap items-center gap-3 lg:gap-4 text-[10px] lg:text-xs font-bold w-full lg:w-auto justify-start lg:justify-end tracking-wider">
+          <span class="flex items-center gap-1.5 text-slate-400"><span class="w-2.5 h-2.5 rounded-full bg-slate-200"></span> 尚未報到</span>
+          <span class="flex items-center gap-1.5 text-emerald-600"><span class="w-2.5 h-2.5 rounded-full bg-emerald-100 border border-emerald-400"></span> 等候中</span>
+          <span class="flex items-center gap-1.5 text-slate-300"><span class="w-2.5 h-2.5 rounded-full bg-slate-50 border border-slate-200"></span> 面談完成</span>
         </div>
       </div>
 
       <!-- 視訊等候名單 -->
-      <div id="videoSection" class="bg-slate-50 border-b border-slate-200 px-3 lg:px-4 py-2 shrink-0 hidden fade-in">
-        <div class="flex justify-between items-center mb-1.5">
-          <h3 class="font-bold text-primary text-[11px] lg:text-sm flex items-center gap-1.5"><i data-lucide="video" class="w-3.5 h-3.5 lg:w-4 lg:h-4"></i> 視訊面談等候區</h3>
-          <button id="videoToggleBtn" onclick="toggleVideoExpand()" class="text-[10px] lg:text-xs font-bold text-accent hover:text-primary transition-colors flex items-center gap-1 hidden">
-            <span>展開全部</span> <i data-lucide="chevron-down" class="w-3 h-3"></i>
+      <div id="videoSection" class="bg-surface/80 border-b border-primary/10 px-4 lg:px-6 py-3 shrink-0 hidden fade-in backdrop-blur-sm">
+        <div class="flex justify-between items-center mb-2">
+          <h3 class="font-black text-primary text-xs lg:text-sm flex items-center gap-2 tracking-widest"><i data-lucide="video" class="w-4 h-4 text-accent"></i> 視訊面談等候區</h3>
+          <button id="videoToggleBtn" onclick="toggleVideoExpand()" class="text-[10px] lg:text-xs font-bold text-primary hover:text-accent transition-colors flex items-center gap-1 hidden bg-white px-2 py-1 rounded shadow-sm border border-highlight">
+            <span class="tracking-wider">展開全部</span> <i data-lucide="chevron-down" class="w-3 h-3"></i>
           </button>
         </div>
-        <div id="videoContainer" class="flex flex-wrap gap-1.5 lg:gap-2">
+        <div id="videoContainer" class="flex flex-wrap gap-2 lg:gap-3">
           <!-- 視訊名單動態生成 -->
         </div>
       </div>
@@ -189,16 +211,16 @@
       <!-- 表格內容區 -->
       <div class="flex-1 lg:overflow-y-auto p-2 lg:p-0 no-scrollbar relative">
         <table class="w-full text-left border-collapse">
-          <thead class="hidden lg:table-header-group sticky top-0 bg-white/95 backdrop-blur-sm z-10 shadow-sm">
-            <tr class="text-slate-500 text-sm border-b border-slate-200">
-              <th class="py-2.5 px-6 font-bold w-32">組別</th>
-              <th class="py-2.5 px-6 font-bold w-1/3">姓名</th>
-              <th class="py-2.5 px-6 font-bold text-center">當前狀態</th>
+          <thead class="hidden lg:table-header-group sticky top-0 bg-white/95 backdrop-blur-md z-10 shadow-sm border-b border-highlight">
+            <tr class="text-slate-500 text-sm tracking-widest">
+              <th class="py-3 px-8 font-bold w-32">組別</th>
+              <th class="py-3 px-8 font-bold w-1/3">姓名</th>
+              <th class="py-3 px-8 font-bold text-center">當前狀態</th>
             </tr>
           </thead>
-          <tbody id="waitingListTable" class="flex flex-col lg:table-row-group gap-2 lg:gap-0 pb-4">
+          <tbody id="waitingListTable" class="flex flex-col lg:table-row-group gap-3 lg:gap-0 pb-6 lg:pb-0 p-2 lg:p-0">
             <!-- 由 JS 動態生成 -->
-            <tr class="flex lg:table-row"><td colspan="3" class="py-12 text-center text-slate-400 font-bold text-base w-full"><i data-lucide="loader-2" class="w-6 h-6 animate-spin mx-auto mb-2 text-accent"></i>載入資料中...</td></tr>
+            <tr class="flex lg:table-row"><td colspan="3" class="py-16 text-center text-primary font-bold text-base w-full tracking-widest"><i data-lucide="loader-2" class="w-8 h-8 animate-spin mx-auto mb-3 text-accent"></i>MCM 資料載入中...</td></tr>
           </tbody>
         </table>
       </div>
@@ -207,62 +229,63 @@
   </main>
 
   <!-- 互動彈窗：活動議程 Modal -->
-  <div id="agendaModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
-    <div class="bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[85vh] flex flex-col transform scale-95 transition-transform duration-300" id="agendaModalContent">
+  <div id="agendaModal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-md z-50 hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
+    <div class="bg-surface rounded-2xl shadow-2xl w-full max-w-2xl max-h-[85vh] flex flex-col transform scale-95 transition-transform duration-300 border border-white" id="agendaModalContent">
       
       <!-- Modal 標題 -->
-      <div class="bg-primary text-white p-3 lg:p-4 rounded-t-xl flex justify-between items-center shrink-0 shadow-sm">
-        <h2 class="text-base lg:text-lg font-black tracking-widest flex items-center gap-2">
-          <i data-lucide="calendar-check-2" class="w-4 h-4 lg:w-5 lg:h-5 text-accent"></i> 今日甄選活動議程
+      <div class="bg-primary text-white p-4 lg:p-5 rounded-t-2xl flex justify-between items-center shrink-0 shadow-sm border-b-4 border-accent">
+        <h2 class="text-base lg:text-xl font-black tracking-widest flex items-center gap-2">
+          <i data-lucide="calendar-check-2" class="w-5 h-5 lg:w-6 lg:h-6 text-accent"></i> 今日甄選活動議程
         </h2>
-        <button onclick="toggleAgendaModal()" class="text-white hover:text-accent transition-colors p-1 bg-white/10 hover:bg-white/20 rounded-md">
-          <i data-lucide="x" class="w-4 h-4 lg:w-5 lg:h-5"></i>
+        <button onclick="toggleAgendaModal()" class="text-white hover:text-accent transition-colors p-1.5 bg-white/10 hover:bg-white/20 rounded-lg backdrop-blur-sm">
+          <i data-lucide="x" class="w-5 h-5"></i>
         </button>
       </div>
       
       <!-- Modal 內容 (雙梯次時間表) -->
-      <div class="p-3 lg:p-6 overflow-y-auto no-scrollbar flex-1 bg-slate-50">
+      <div class="p-4 lg:p-8 overflow-y-auto no-scrollbar flex-1 bg-surface">
         
         <!-- 上午梯 -->
-        <div class="mb-5 lg:mb-6 fade-in" style="animation-delay: 0.1s;">
-          <div class="flex items-center gap-2 mb-2">
-            <span class="bg-accent text-primary font-black py-1 px-3 rounded text-[11px] lg:text-sm shadow-sm tracking-widest">上午梯</span>
-            <span class="text-slate-400 text-[10px] lg:text-xs font-bold">08:30 - 12:00</span>
+        <div class="mb-6 lg:mb-8 fade-in" style="animation-delay: 0.1s;">
+          <div class="flex items-center gap-3 mb-3">
+            <span class="bg-accent text-primary font-black py-1 px-3 rounded text-xs lg:text-sm shadow-sm tracking-widest">上午梯</span>
+            <span class="text-slate-500 text-[11px] lg:text-sm font-bold font-mono">08:30 - 12:00</span>
           </div>
-          <div class="bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden">
+          <div class="bg-white border border-highlight rounded-xl shadow-sm overflow-hidden">
             <table class="w-full text-xs lg:text-sm text-left">
-              <thead class="bg-slate-100 text-slate-600 border-b border-slate-200 hidden sm:table-header-group">
+              <thead class="bg-primary/5 text-primary border-b border-highlight hidden sm:table-header-group">
                 <tr>
-                  <th class="py-2.5 px-4 font-bold w-1/4">時間</th>
-                  <th class="py-2.5 px-4 font-bold w-2/5">內容</th>
-                  <th class="py-2.5 px-4 font-bold w-[35%]">主講者</th>
+                  <th class="py-3 px-5 font-bold w-1/4 tracking-wider">時間</th>
+                  <th class="py-3 px-5 font-bold w-2/5 tracking-wider">內容</th>
+                  <th class="py-3 px-5 font-bold w-[35%] tracking-wider">主講者</th>
                 </tr>
               </thead>
-              <tbody class="divide-y divide-slate-100 flex flex-col sm:table-row-group">
-                <tr class="hover:bg-slate-50 flex flex-col sm:table-row p-2.5 sm:p-0">
-                  <td class="py-1 sm:py-3 px-1 sm:px-4 font-mono text-slate-500 sm:font-bold">08:30-09:00</td>
-                  <td class="py-1 sm:py-3 px-1 sm:px-4 font-bold text-primary sm:text-slate-700 text-[13px] sm:text-sm">學員報到</td>
-                  <td class="py-1 sm:py-3 px-1 sm:px-4 text-slate-500 sm:text-slate-600"></td>
+              <tbody class="divide-y divide-highlight/50 flex flex-col sm:table-row-group">
+                <!-- Data Rows -->
+                <tr class="hover:bg-surface flex flex-col sm:table-row p-3 sm:p-0 transition-colors">
+                  <td class="py-1.5 sm:py-3.5 px-2 sm:px-5 font-mono text-slate-500 sm:font-bold">08:30-09:00</td>
+                  <td class="py-1.5 sm:py-3.5 px-2 sm:px-5 font-black text-primary text-[13px] sm:text-base tracking-wide">學員報到</td>
+                  <td class="py-1.5 sm:py-3.5 px-2 sm:px-5 text-slate-500"></td>
                 </tr>
-                <tr class="hover:bg-slate-50 flex flex-col sm:table-row p-2.5 sm:p-0">
-                  <td class="py-1 sm:py-3 px-1 sm:px-4 font-mono text-slate-500 sm:font-bold">09:00-09:10</td>
-                  <td class="py-1 sm:py-3 px-1 sm:px-4 font-bold text-primary sm:text-slate-700 text-[13px] sm:text-sm">長官致詞</td>
-                  <td class="py-1 sm:py-3 px-1 sm:px-4 text-slate-600 font-medium leading-relaxed">林宏榮 院長<br>陳志成 副院長</td>
+                <tr class="hover:bg-surface flex flex-col sm:table-row p-3 sm:p-0 transition-colors">
+                  <td class="py-1.5 sm:py-3.5 px-2 sm:px-5 font-mono text-slate-500 sm:font-bold">09:00-09:10</td>
+                  <td class="py-1.5 sm:py-3.5 px-2 sm:px-5 font-black text-primary text-[13px] sm:text-base tracking-wide">長官致詞</td>
+                  <td class="py-1.5 sm:py-3.5 px-2 sm:px-5 text-slate-600 font-medium leading-relaxed">林宏榮 院長<br>陳志成 副院長</td>
                 </tr>
-                <tr class="hover:bg-slate-50 flex flex-col sm:table-row p-2.5 sm:p-0">
-                  <td class="py-1 sm:py-3 px-1 sm:px-4 font-mono text-slate-500 sm:font-bold">09:10-09:20</td>
-                  <td class="py-1 sm:py-3 px-1 sm:px-4 font-bold text-primary sm:text-slate-700 text-[13px] sm:text-sm">PGY訓練計畫簡介</td>
-                  <td class="py-1 sm:py-3 px-1 sm:px-4 text-slate-600 font-medium">郭妍伶 主任</td>
+                <tr class="hover:bg-surface flex flex-col sm:table-row p-3 sm:p-0 transition-colors">
+                  <td class="py-1.5 sm:py-3.5 px-2 sm:px-5 font-mono text-slate-500 sm:font-bold">09:10-09:20</td>
+                  <td class="py-1.5 sm:py-3.5 px-2 sm:px-5 font-black text-primary text-[13px] sm:text-base tracking-wide">PGY訓練計畫簡介</td>
+                  <td class="py-1.5 sm:py-3.5 px-2 sm:px-5 text-slate-600 font-medium">郭妍伶 主任</td>
                 </tr>
-                <tr class="hover:bg-slate-50 flex flex-col sm:table-row p-2.5 sm:p-0">
-                  <td class="py-1 sm:py-3 px-1 sm:px-4 font-mono text-slate-500 sm:font-bold">09:20-12:00</td>
-                  <td class="py-1 sm:py-3 px-1 sm:px-4 font-bold text-primary sm:text-slate-700 text-[13px] sm:text-sm">學員面談<br>學長姊交流</td>
-                  <td class="py-1 sm:py-3 px-1 sm:px-4 text-slate-600 font-medium leading-relaxed">各科面談官<br>PGY甄選交流代表</td>
+                <tr class="hover:bg-surface flex flex-col sm:table-row p-3 sm:p-0 transition-colors">
+                  <td class="py-1.5 sm:py-3.5 px-2 sm:px-5 font-mono text-slate-500 sm:font-bold">09:20-12:00</td>
+                  <td class="py-1.5 sm:py-3.5 px-2 sm:px-5 font-black text-primary text-[13px] sm:text-base tracking-wide">學員面談<br>學長姊交流</td>
+                  <td class="py-1.5 sm:py-3.5 px-2 sm:px-5 text-slate-600 font-medium leading-relaxed">各科面談官<br>PGY甄選交流代表</td>
                 </tr>
-                <tr class="hover:bg-slate-50 flex flex-col sm:table-row p-2.5 sm:p-0 bg-slate-50/50">
-                  <td class="py-1 sm:py-3 px-1 sm:px-4 font-mono text-slate-400">12:00</td>
-                  <td class="py-1 sm:py-3 px-1 sm:px-4 font-bold text-slate-500 text-[13px] sm:text-sm">面談結束</td>
-                  <td class="py-1 sm:py-3 px-1 sm:px-4 text-slate-500"></td>
+                <tr class="flex flex-col sm:table-row p-3 sm:p-0 bg-primary/5">
+                  <td class="py-1.5 sm:py-3.5 px-2 sm:px-5 font-mono text-slate-400">12:00</td>
+                  <td class="py-1.5 sm:py-3.5 px-2 sm:px-5 font-bold text-slate-500 text-[13px] sm:text-base tracking-wide">面談結束</td>
+                  <td class="py-1.5 sm:py-3.5 px-2 sm:px-5 text-slate-500"></td>
                 </tr>
               </tbody>
             </table>
@@ -271,44 +294,44 @@
 
         <!-- 下午梯 -->
         <div class="fade-in" style="animation-delay: 0.2s;">
-          <div class="flex items-center gap-2 mb-2">
-            <span class="bg-primary text-white font-black py-1 px-3 rounded text-[11px] lg:text-sm shadow-sm tracking-widest">下午梯</span>
-            <span class="text-slate-400 text-[10px] lg:text-xs font-bold">12:30 - 16:00</span>
+          <div class="flex items-center gap-3 mb-3">
+            <span class="bg-primary text-white font-black py-1 px-3 rounded text-xs lg:text-sm shadow-sm tracking-widest">下午梯</span>
+            <span class="text-slate-500 text-[11px] lg:text-sm font-bold font-mono">12:30 - 16:00</span>
           </div>
-          <div class="bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden">
+          <div class="bg-white border border-highlight rounded-xl shadow-sm overflow-hidden">
             <table class="w-full text-xs lg:text-sm text-left">
-              <thead class="bg-slate-100 text-slate-600 border-b border-slate-200 hidden sm:table-header-group">
+              <thead class="bg-primary/5 text-primary border-b border-highlight hidden sm:table-header-group">
                 <tr>
-                  <th class="py-2.5 px-4 font-bold w-1/4">時間</th>
-                  <th class="py-2.5 px-4 font-bold w-2/5">內容</th>
-                  <th class="py-2.5 px-4 font-bold w-[35%]">主講者</th>
+                  <th class="py-3 px-5 font-bold w-1/4 tracking-wider">時間</th>
+                  <th class="py-3 px-5 font-bold w-2/5 tracking-wider">內容</th>
+                  <th class="py-3 px-5 font-bold w-[35%] tracking-wider">主講者</th>
                 </tr>
               </thead>
-              <tbody class="divide-y divide-slate-100 flex flex-col sm:table-row-group">
-                <tr class="hover:bg-slate-50 flex flex-col sm:table-row p-2.5 sm:p-0">
-                  <td class="py-1 sm:py-3 px-1 sm:px-4 font-mono text-slate-500 sm:font-bold">12:30-13:00</td>
-                  <td class="py-1 sm:py-3 px-1 sm:px-4 font-bold text-primary sm:text-slate-700 text-[13px] sm:text-sm">學員報到</td>
-                  <td class="py-1 sm:py-3 px-1 sm:px-4 text-slate-500 sm:text-slate-600"></td>
+              <tbody class="divide-y divide-highlight/50 flex flex-col sm:table-row-group">
+                <tr class="hover:bg-surface flex flex-col sm:table-row p-3 sm:p-0 transition-colors">
+                  <td class="py-1.5 sm:py-3.5 px-2 sm:px-5 font-mono text-slate-500 sm:font-bold">12:30-13:00</td>
+                  <td class="py-1.5 sm:py-3.5 px-2 sm:px-5 font-black text-primary text-[13px] sm:text-base tracking-wide">學員報到</td>
+                  <td class="py-1.5 sm:py-3.5 px-2 sm:px-5 text-slate-500"></td>
                 </tr>
-                <tr class="hover:bg-slate-50 flex flex-col sm:table-row p-2.5 sm:p-0">
-                  <td class="py-1 sm:py-3 px-1 sm:px-4 font-mono text-slate-500 sm:font-bold">13:00-13:10</td>
-                  <td class="py-1 sm:py-3 px-1 sm:px-4 font-bold text-primary sm:text-slate-700 text-[13px] sm:text-sm">長官致詞</td>
-                  <td class="py-1 sm:py-3 px-1 sm:px-4 text-slate-600 font-medium leading-relaxed">林宏榮 院長<br>陳志成 副院長</td>
+                <tr class="hover:bg-surface flex flex-col sm:table-row p-3 sm:p-0 transition-colors">
+                  <td class="py-1.5 sm:py-3.5 px-2 sm:px-5 font-mono text-slate-500 sm:font-bold">13:00-13:10</td>
+                  <td class="py-1.5 sm:py-3.5 px-2 sm:px-5 font-black text-primary text-[13px] sm:text-base tracking-wide">長官致詞</td>
+                  <td class="py-1.5 sm:py-3.5 px-2 sm:px-5 text-slate-600 font-medium leading-relaxed">林宏榮 院長<br>陳志成 副院長</td>
                 </tr>
-                <tr class="hover:bg-slate-50 flex flex-col sm:table-row p-2.5 sm:p-0">
-                  <td class="py-1 sm:py-3 px-1 sm:px-4 font-mono text-slate-500 sm:font-bold">13:10-13:20</td>
-                  <td class="py-1 sm:py-3 px-1 sm:px-4 font-bold text-primary sm:text-slate-700 text-[13px] sm:text-sm">PGY訓練計畫簡介</td>
-                  <td class="py-1 sm:py-3 px-1 sm:px-4 text-slate-600 font-medium">郭妍伶 主任</td>
+                <tr class="hover:bg-surface flex flex-col sm:table-row p-3 sm:p-0 transition-colors">
+                  <td class="py-1.5 sm:py-3.5 px-2 sm:px-5 font-mono text-slate-500 sm:font-bold">13:10-13:20</td>
+                  <td class="py-1.5 sm:py-3.5 px-2 sm:px-5 font-black text-primary text-[13px] sm:text-base tracking-wide">PGY訓練計畫簡介</td>
+                  <td class="py-1.5 sm:py-3.5 px-2 sm:px-5 text-slate-600 font-medium">郭妍伶 主任</td>
                 </tr>
-                <tr class="hover:bg-slate-50 flex flex-col sm:table-row p-2.5 sm:p-0">
-                  <td class="py-1 sm:py-3 px-1 sm:px-4 font-mono text-slate-500 sm:font-bold">13:20-16:00</td>
-                  <td class="py-1 sm:py-3 px-1 sm:px-4 font-bold text-primary sm:text-slate-700 text-[13px] sm:text-sm">學員面談<br>學長姊交流</td>
-                  <td class="py-1 sm:py-3 px-1 sm:px-4 text-slate-600 font-medium leading-relaxed">各科面談官<br>PGY甄選交流代表</td>
+                <tr class="hover:bg-surface flex flex-col sm:table-row p-3 sm:p-0 transition-colors">
+                  <td class="py-1.5 sm:py-3.5 px-2 sm:px-5 font-mono text-slate-500 sm:font-bold">13:20-16:00</td>
+                  <td class="py-1.5 sm:py-3.5 px-2 sm:px-5 font-black text-primary text-[13px] sm:text-base tracking-wide">學員面談<br>學長姊交流</td>
+                  <td class="py-1.5 sm:py-3.5 px-2 sm:px-5 text-slate-600 font-medium leading-relaxed">各科面談官<br>PGY甄選交流代表</td>
                 </tr>
-                <tr class="hover:bg-slate-50 flex flex-col sm:table-row p-2.5 sm:p-0 bg-slate-50/50">
-                  <td class="py-1 sm:py-3 px-1 sm:px-4 font-mono text-slate-400">16:00</td>
-                  <td class="py-1 sm:py-3 px-1 sm:px-4 font-bold text-slate-500 text-[13px] sm:text-sm">面談結束</td>
-                  <td class="py-1 sm:py-3 px-1 sm:px-4 text-slate-500"></td>
+                <tr class="flex flex-col sm:table-row p-3 sm:p-0 bg-primary/5">
+                  <td class="py-1.5 sm:py-3.5 px-2 sm:px-5 font-mono text-slate-400">16:00</td>
+                  <td class="py-1.5 sm:py-3.5 px-2 sm:px-5 font-bold text-slate-500 text-[13px] sm:text-base tracking-wide">面談結束</td>
+                  <td class="py-1.5 sm:py-3.5 px-2 sm:px-5 text-slate-500"></td>
                 </tr>
               </tbody>
             </table>
@@ -352,7 +375,7 @@
         });
       }, 15000);
 
-      // 設定 Modal 點擊背景關閉與 ESC 鍵關閉
+      // Modal 事件
       const modal = document.getElementById('agendaModal');
       modal.addEventListener('click', function(e) {
         if (e.target === this) toggleAgendaModal();
@@ -364,21 +387,18 @@
       });
     });
 
-    // 控制活動議程 Modal 的開關
     function toggleAgendaModal() {
       const modal = document.getElementById('agendaModal');
       const content = document.getElementById('agendaModalContent');
       
       if (modal.classList.contains('hidden')) {
         modal.classList.remove('hidden');
-        // 強制重繪以觸發過渡動畫
         void modal.offsetWidth;
         modal.classList.remove('opacity-0');
         content.classList.remove('scale-95');
       } else {
         modal.classList.add('opacity-0');
         content.classList.add('scale-95');
-        // 等待動畫結束後隱藏
         setTimeout(() => modal.classList.add('hidden'), 300);
       }
     }
@@ -402,15 +422,15 @@
       lastDataStr = ''; 
       currentFilter = 'ALL';
       showAllCheckbox.checked = false;
-      waitingListTable.innerHTML = `<tr class="flex lg:table-row"><td colspan="3" class="py-12 text-center text-slate-400 font-bold text-base w-full"><i data-lucide="loader-2" class="w-6 h-6 animate-spin mx-auto mb-2 text-accent"></i>切換時段中...</td></tr>`;
-      groupProgressContainer.innerHTML = `<div class="text-center text-slate-400 text-sm py-4"><i data-lucide="loader-2" class="w-5 h-5 animate-spin mx-auto mb-1 text-accent"></i>切換中...</div>`;
+      waitingListTable.innerHTML = `<tr class="flex lg:table-row"><td colspan="3" class="py-16 text-center text-primary font-bold text-base w-full tracking-widest"><i data-lucide="loader-2" class="w-8 h-8 animate-spin mx-auto mb-3 text-accent"></i>時段切換中...</td></tr>`;
+      groupProgressContainer.innerHTML = `<div class="text-center text-primary text-sm py-4"><i data-lucide="loader-2" class="w-5 h-5 animate-spin mx-auto mb-2 text-accent"></i>切換中...</div>`;
       lucide.createIcons();
       fetchData();
     }
 
     function updateSessionButtons() {
-      const activeClass = 'px-3 lg:px-5 py-1 lg:py-1.5 rounded-md font-bold text-xs lg:text-sm transition-colors bg-accent text-primary shadow-sm';
-      const inactiveClass = 'px-3 lg:px-5 py-1 lg:py-1.5 rounded-md font-bold text-xs lg:text-sm transition-colors text-white hover:bg-white/20 border border-transparent';
+      const activeClass = 'px-3 lg:px-6 py-1.5 lg:py-2 rounded-lg font-black text-xs lg:text-sm transition-all duration-300 bg-accent text-primary shadow-md tracking-widest';
+      const inactiveClass = 'px-3 lg:px-6 py-1.5 lg:py-2 rounded-lg font-bold text-xs lg:text-sm transition-all duration-300 text-white hover:bg-white/20 border border-transparent tracking-widest';
       if (currentSession === '上午') {
         btnMorning.className = activeClass;
         btnAfternoon.className = inactiveClass;
@@ -462,12 +482,10 @@
       renderVideoSection();
     }
 
-    // 姓名隱私遮蔽處理
     function maskName(name) {
       if (!name) return '';
       if (name.length === 1) return name;
       if (name.length === 2) return name.charAt(0) + 'O';
-      // 3個字以上：保留頭尾，中間用 O 取代
       return name.charAt(0) + 'O'.repeat(name.length - 2) + name.charAt(name.length - 1);
     }
 
@@ -477,8 +495,7 @@
         return;
       }
 
-      // 將進度條之間的 gap 大幅縮小，確保手機版能放下 10 組
-      let html = '<div class="flex flex-col gap-1.5 lg:gap-3">';
+      let html = '<div class="flex flex-col gap-2.5 lg:gap-4">';
       groupsKeys.sort((a, b) => parseInt(a) - parseInt(b)).forEach(g => {
         let members = groupsData[g];
         let total = members.length;
@@ -486,13 +503,13 @@
         let percent = total === 0 ? 0 : Math.round((completed / total) * 100);
 
         html += `
-          <div class="flex flex-col gap-0.5 lg:gap-1.5 fade-in">
+          <div class="flex flex-col gap-1.5 lg:gap-2 fade-in">
             <div class="flex justify-between items-end">
-              <span class="font-bold text-slate-700 text-[11px] lg:text-sm">第 ${g} 組</span>
-              <span class="text-[10px] lg:text-xs font-mono font-bold text-slate-500 bg-slate-100 px-1 py-0.5 rounded leading-none">${completed} / ${total}</span>
+              <span class="font-bold text-primary text-xs lg:text-sm tracking-wider">第 ${g} 組</span>
+              <span class="text-[10px] lg:text-xs font-mono font-bold text-primary bg-highlight/50 px-1.5 py-0.5 rounded leading-none border border-highlight">${completed} / ${total}</span>
             </div>
-            <div class="w-full bg-slate-100 rounded-full h-1.5 lg:h-2 overflow-hidden shadow-inner">
-              <div class="bg-accent h-1.5 lg:h-2 rounded-full transition-all duration-1000 ease-out" style="width: ${percent}%"></div>
+            <div class="w-full bg-highlight/30 rounded-full h-2 lg:h-2.5 overflow-hidden shadow-inner border border-highlight/50">
+              <div class="bg-primary h-2 lg:h-2.5 rounded-full transition-all duration-1000 ease-out" style="width: ${percent}%"></div>
             </div>
           </div>
         `;
@@ -516,7 +533,6 @@
 
       const groupsKeys = Object.keys(groups);
       updateFilterOptions(groupsKeys);
-      
       renderGroupProgress(groupsKeys, groups);
 
       allProcessedData = [];
@@ -525,7 +541,6 @@
         let groupMembers = groups[g];
         let maxCompletedOrder = 0;
 
-        // 計算目前完成的最大序號，用於輔助判斷是否「過號」
         groupMembers.forEach(member => {
           if (member.status_interview) {
             maxCompletedOrder = Math.max(maxCompletedOrder, member.parsedOrder);
@@ -534,16 +549,12 @@
 
         groupMembers.forEach(member => {
           member.isMissedTurn = false;
-          
-          // 確保兼容資料庫可能回傳的布林值或字串型態
           const isCalled = member.status_call === true || String(member.status_call).toLowerCase() === 'true';
 
           if (member.status_interview) {
             member.boardStatus = 'completed';
           } else if (isCalled && member.status_checkin) {
-            // 一律依照資料庫 status_call 判斷是否準備中 (前提是必須已報到)
             member.boardStatus = 'preparing';
-            // 如果被叫號了，但自己的序號小於目前已完面的最高序號，標示為過號
             if (member.parsedOrder <= maxCompletedOrder) {
               member.isMissedTurn = true; 
             }
@@ -586,16 +597,16 @@
       let displayData = allVideoWaitingData.slice(0, displayCount);
 
       container.innerHTML = displayData.map(c => `
-        <div class="bg-white border border-slate-200 rounded-md px-2 lg:px-3 py-1 lg:py-1.5 shadow-sm flex items-center gap-2 fade-in">
-          <span class="font-bold text-slate-700 text-[11px] lg:text-sm tracking-widest">${maskName(c['姓名'])}</span>
+        <div class="bg-white border border-highlight rounded-lg px-3 lg:px-4 py-1.5 lg:py-2 shadow-sm flex items-center gap-2 fade-in">
+          <span class="font-bold text-primary text-xs lg:text-sm tracking-widest">${maskName(c['姓名'])}</span>
         </div>
       `).join('');
 
       if (allVideoWaitingData.length > 10) {
         toggleBtn.classList.remove('hidden');
         toggleBtn.innerHTML = isVideoExpanded 
-          ? `<span>收合顯示</span> <i data-lucide="chevron-up" class="w-2.5 h-2.5 lg:w-3 lg:h-3"></i>` 
-          : `<span>展開全部 (${allVideoWaitingData.length})</span> <i data-lucide="chevron-down" class="w-2.5 h-2.5 lg:w-3 lg:h-3"></i>`;
+          ? `<span class="tracking-wider">收合顯示</span> <i data-lucide="chevron-up" class="w-3 h-3"></i>` 
+          : `<span class="tracking-wider">展開全部 (${allVideoWaitingData.length})</span> <i data-lucide="chevron-down" class="w-3 h-3"></i>`;
         lucide.createIcons();
       } else {
         toggleBtn.classList.add('hidden');
@@ -614,54 +625,57 @@
 
       if (listToRender.length === 0) {
         let emptyMsg = isShowAll ? '此條件下無考生資料' : '目前暫無需要前往會議廳等待的考生';
-        waitingListTable.innerHTML = `<tr class="flex lg:table-row"><td colspan="3" class="py-8 lg:py-12 text-center text-slate-400 font-bold text-sm lg:text-base w-full">${emptyMsg}</td></tr>`;
+        waitingListTable.innerHTML = `<tr class="flex lg:table-row"><td colspan="3" class="py-12 lg:py-16 text-center text-slate-400 font-bold text-sm lg:text-base w-full tracking-widest">${emptyMsg}</td></tr>`;
         return;
       }
 
       waitingListTable.innerHTML = listToRender.map(c => {
         let statusBadge = '';
-        let rowClass = 'flex flex-col lg:table-row bg-white lg:bg-transparent border border-slate-100 lg:border-none lg:border-b lg:border-slate-100 transition-colors text-xs lg:text-base fade-in rounded-xl lg:rounded-none shadow-sm lg:shadow-none p-2.5 lg:p-0 relative ';
-        let nameClass = 'font-black text-slate-800 text-sm lg:text-lg tracking-widest';
+        let rowClass = 'flex flex-col lg:table-row bg-white lg:bg-transparent border border-highlight lg:border-none lg:border-b lg:border-highlight transition-all duration-300 text-xs lg:text-base fade-in rounded-xl lg:rounded-none shadow-sm lg:shadow-none p-3 lg:p-0 relative ';
+        let nameClass = 'font-black text-primary text-base lg:text-lg tracking-widest';
 
         switch (c.boardStatus) {
           case 'preparing':
             if (c.isMissedTurn) {
-              statusBadge = `<span class="inline-flex justify-center w-full lg:w-auto items-center gap-1 bg-red-600 text-white px-3 lg:px-4 py-1.5 lg:py-2 rounded-lg font-bold text-[11px] lg:text-sm shadow-md pulse-red tracking-wide"><i data-lucide="alert-circle" class="w-3.5 h-3.5 lg:w-4 lg:h-4"></i> 過號：請至國際會議廳等候</span>`;
-              rowClass += 'bg-red-50/60 lg:bg-red-50/80 border-l-4 border-l-red-500 hover:bg-red-100/50 my-1 lg:my-0 z-10';
+              // 過號：使用深爵士紫 (alert) 代替紅色
+              statusBadge = `<span class="inline-flex justify-center w-full lg:w-auto items-center gap-1.5 bg-alert text-white px-4 lg:px-5 py-2 lg:py-2.5 rounded-xl font-bold text-xs lg:text-sm shadow-lg pulse-alert tracking-widest"><i data-lucide="alert-circle" class="w-4 h-4 lg:w-5 lg:h-5"></i> 過號：請至國際會議廳等候</span>`;
+              rowClass += 'bg-alertLight lg:bg-alertLight/60 border-l-4 border-l-alert hover:bg-alert/10 my-2 lg:my-0 z-10 transform lg:scale-[1.01]';
+              nameClass = 'font-black text-alert text-lg lg:text-xl tracking-widest';
             } else {
-              statusBadge = `<span class="inline-flex justify-center w-full lg:w-auto items-center gap-1 bg-accent text-primary px-3 lg:px-4 py-1.5 lg:py-2 rounded-lg font-bold text-[11px] lg:text-sm shadow-md pulse-bg tracking-wide"><i data-lucide="arrow-right-circle" class="w-3.5 h-3.5 lg:w-4 lg:h-4"></i> 請至國際會議廳等待叫號</span>`;
-              rowClass += 'bg-highlight/40 lg:bg-highlight/60 border-l-4 border-l-accent hover:bg-highlight/80 my-1 lg:my-0 z-10';
+              // 叫號準備：使用 MCM 點綴黃 (accent)
+              statusBadge = `<span class="inline-flex justify-center w-full lg:w-auto items-center gap-1.5 bg-accent text-primary px-4 lg:px-5 py-2 lg:py-2.5 rounded-xl font-bold text-xs lg:text-sm shadow-lg pulse-bg tracking-widest"><i data-lucide="arrow-right-circle" class="w-4 h-4 lg:w-5 lg:h-5"></i> 請至國際會議廳等待叫號</span>`;
+              rowClass += 'bg-highlight/30 lg:bg-highlight/40 border-l-4 border-l-accent hover:bg-highlight/60 my-2 lg:my-0 z-10 transform lg:scale-[1.01]';
+              nameClass = 'font-black text-primary text-lg lg:text-xl tracking-widest';
             }
-            nameClass = 'font-black text-primary text-base lg:text-xl tracking-widest';
             break;
             
           case 'waiting':
-            statusBadge = `<span class="inline-flex justify-center w-full lg:w-auto items-center gap-1 bg-emerald-50 text-emerald-700 px-2.5 lg:px-3 py-1 rounded-full font-bold text-[10px] lg:text-sm border border-emerald-200"><i data-lucide="user-check" class="w-3 h-3 lg:w-3.5 lg:h-3.5"></i> 等候中</span>`;
-            rowClass += 'hover:bg-slate-50';
+            statusBadge = `<span class="inline-flex justify-center w-full lg:w-auto items-center gap-1.5 bg-emerald-50 text-emerald-700 px-3 lg:px-4 py-1.5 rounded-full font-bold text-[11px] lg:text-sm border border-emerald-200 tracking-wider"><i data-lucide="user-check" class="w-3.5 h-3.5 lg:w-4 lg:h-4"></i> 等候中</span>`;
+            rowClass += 'hover:bg-white/60';
             break;
             
           case 'completed':
-            statusBadge = `<span class="inline-flex justify-center w-full lg:w-auto items-center gap-1 bg-slate-100 text-slate-400 px-2.5 lg:px-3 py-1 rounded-full font-bold text-[10px] lg:text-sm"><i data-lucide="check" class="w-3 h-3 lg:w-3.5 lg:h-3.5"></i> 已完成</span>`;
-            rowClass += 'opacity-50 lg:grayscale hover:bg-slate-50'; 
+            statusBadge = `<span class="inline-flex justify-center w-full lg:w-auto items-center gap-1.5 bg-slate-100 text-slate-400 px-3 lg:px-4 py-1.5 rounded-full font-bold text-[11px] lg:text-sm tracking-wider"><i data-lucide="check" class="w-3.5 h-3.5 lg:w-4 lg:h-4"></i> 已完成</span>`;
+            rowClass += 'opacity-50 lg:grayscale hover:bg-white/60'; 
             break;
             
           case 'not_arrived':
-            statusBadge = `<span class="inline-flex justify-center w-full lg:w-auto items-center gap-1 text-slate-400 px-2.5 lg:px-3 py-1 text-[10px] lg:text-sm font-medium">尚未報到</span>`;
-            rowClass += 'text-slate-400 hover:bg-slate-50';
+            statusBadge = `<span class="inline-flex justify-center w-full lg:w-auto items-center gap-1.5 text-slate-400 px-3 lg:px-4 py-1.5 text-[11px] lg:text-sm font-medium tracking-wider">尚未報到</span>`;
+            rowClass += 'text-slate-400 hover:bg-white/60';
             break;
         }
 
         return `
           <tr class="${rowClass}">
-            <td class="flex justify-between items-center lg:table-cell py-1.5 lg:py-2.5 px-2.5 lg:px-6 font-bold text-slate-600 border-b border-slate-50 lg:border-none">
-              <span class="lg:hidden text-[10px] text-slate-400 font-normal">組別</span>
+            <td class="flex justify-between items-center lg:table-cell py-2 lg:py-4 px-3 lg:px-8 font-bold text-primary/70 border-b border-surface lg:border-none">
+              <span class="lg:hidden text-[10px] text-slate-400 font-normal tracking-wider">組別</span>
               第 ${c['組別']} 組
             </td>
-            <td class="flex justify-between items-center lg:table-cell py-1.5 lg:py-2.5 px-2.5 lg:px-6 border-b border-slate-50 lg:border-none">
-              <span class="lg:hidden text-[10px] text-slate-400 font-normal">姓名</span>
+            <td class="flex justify-between items-center lg:table-cell py-2 lg:py-4 px-3 lg:px-8 border-b border-surface lg:border-none">
+              <span class="lg:hidden text-[10px] text-slate-400 font-normal tracking-wider">姓名</span>
               <span class="${nameClass}">${maskName(c['姓名'])}</span>
             </td>
-            <td class="flex justify-center lg:table-cell py-1.5 lg:py-2.5 px-2.5 lg:px-6 text-center mt-1 lg:mt-0 lg:w-1/3">
+            <td class="flex justify-center lg:table-cell py-2.5 lg:py-4 px-3 lg:px-8 text-center mt-2 lg:mt-0 lg:w-1/3">
               ${statusBadge}
             </td>
           </tr>
