@@ -148,21 +148,22 @@
       </div>
       
       <div class="overflow-x-auto no-scrollbar pb-2">
-        <table class="w-full text-left border-collapse min-w-[650px]">
+        <table class="w-full text-left border-collapse min-w-[700px]">
           <thead>
             <tr class="bg-base border-b border-slate-200 text-sm text-slate-500">
-              <!-- 透過限縮寬度與加入空白欄位，讓資料更緊湊 -->
               <th class="py-3 px-3 md:px-4 font-semibold w-24 md:w-28 whitespace-nowrap">組別/序</th>
               <th class="py-3 px-3 md:px-4 font-semibold w-24 md:w-32 whitespace-nowrap">姓名</th>
               <th class="py-3 px-2 md:px-3 font-semibold text-center w-28 md:w-32 whitespace-nowrap">報到狀態</th>
               <th class="py-3 px-2 md:px-3 font-semibold text-center w-28 md:w-32 whitespace-nowrap">叫號準備</th>
               <th class="py-3 px-2 md:px-3 font-semibold text-center w-28 md:w-32 whitespace-nowrap">面談狀態</th>
-              <th class="w-full"></th> <!-- 吸收剩餘寬度的彈性欄位 -->
+              <!-- 新增管理操作欄位 -->
+              <th class="py-3 px-2 font-semibold text-center w-16 whitespace-nowrap">管理</th>
+              <th class="w-full"></th> 
             </tr>
           </thead>
           <tbody id="tableBody">
             <tr>
-              <td colspan="6" class="py-12 text-center text-slate-400">
+              <td colspan="7" class="py-12 text-center text-slate-400">
                 <i data-lucide="inbox" class="mx-auto mb-3 opacity-50 w-8 h-8"></i>
                 請先確認連線狀態或重新整理
               </td>
@@ -217,7 +218,6 @@
         btn.addEventListener('click', (e) => {
           filterSession = e.target.dataset.session;
           
-          // 更新按鈕樣式
           filterBtns.forEach(b => {
             b.classList.remove('bg-primary', 'text-white', 'shadow-sm');
             b.classList.add('text-slate-600', 'hover:bg-slate-50');
@@ -225,7 +225,6 @@
           e.target.classList.remove('text-slate-600', 'hover:bg-slate-50');
           e.target.classList.add('bg-primary', 'text-white', 'shadow-sm');
           
-          // 連動更新儀表板與表格
           renderDashboard();
           renderTable();
         });
@@ -260,13 +259,11 @@
         idSuffixContainer.appendChild(btn);
       }
 
-      // 綁定尾數按鈕點擊事件
       const idBtns = document.querySelectorAll('.id-btn');
       idBtns.forEach(btn => {
         btn.addEventListener('click', (e) => {
           filterIdSuffix = e.target.dataset.val;
           
-          // 更新樣式
           idBtns.forEach(b => {
             b.classList.remove('bg-slate-800', 'text-white', 'shadow-sm', 'border-transparent');
             b.classList.add('bg-slate-100', 'text-slate-600', 'hover:bg-slate-200');
@@ -282,10 +279,20 @@
     // --- 自訂提示框 ---
     function showToast(message, type = 'error') {
       const toast = document.createElement('div');
-      const bgColor = type === 'error' ? 'bg-red-600' : 'bg-slate-800';
+      // 依據類型改變顏色，增加 info 類型的支援
+      let bgColor = 'bg-slate-800';
+      let iconName = 'info';
+      if (type === 'error') {
+        bgColor = 'bg-red-600';
+        iconName = 'alert-triangle';
+      } else if (type === 'success') {
+        bgColor = 'bg-emerald-600';
+        iconName = 'check-circle';
+      }
+
       toast.className = `${bgColor} text-white px-4 py-3 rounded-lg shadow-lg flex items-center gap-2 text-sm font-medium fade-in pointer-events-auto`;
       toast.innerHTML = `
-        <i data-lucide="${type === 'error' ? 'alert-triangle' : 'info'}" class="w-4 h-4"></i>
+        <i data-lucide="${iconName}" class="w-4 h-4"></i>
         ${message}
       `;
       document.getElementById('toastContainer').appendChild(toast);
@@ -298,7 +305,6 @@
       }, 4000);
     }
 
-    // --- 輔助函式：動態提取姓名 ---
     function extractName(c) {
       if (c['姓名']) return c['姓名'];
       if (c['名字']) return c['名字'];
@@ -307,7 +313,6 @@
       return fuzzyKey ? c[fuzzyKey] : '未知';
     }
 
-    // --- 輔助函式：時間格式化 ---
     function formatTime(timeStr) {
       if (!timeStr) return '';
       try {
@@ -323,7 +328,6 @@
       }
     }
 
-    // --- API 狀態更新 ---
     function updateSyncStatus(isSyncing, isError = false) {
       if (isError) {
         syncStatus.className = 'inline-flex items-center gap-1 text-xs bg-red-500/20 text-red-600 px-2 py-1 rounded-full border border-red-500/30 whitespace-nowrap';
@@ -338,7 +342,6 @@
       lucide.createIcons();
     }
 
-    // --- API 通訊 ---
     async function fetchData() {
       loadingOverlay.classList.remove('hidden');
       updateSyncStatus(true);
@@ -366,7 +369,7 @@
       } catch (error) {
         console.error('Fetch error:', error);
         updateSyncStatus(false, true);
-        tableBody.innerHTML = `<tr><td colspan="6" class="py-12 text-center text-red-500">無法讀取資料，請確認您的 Google Sheet 權限設定。<br><span class="text-xs opacity-70">${error.message}</span></td></tr>`;
+        tableBody.innerHTML = `<tr><td colspan="7" class="py-12 text-center text-red-500">無法讀取資料，請確認您的 Google Sheet 權限設定。<br><span class="text-xs opacity-70">${error.message}</span></td></tr>`;
       } finally {
         loadingOverlay.classList.add('hidden');
       }
@@ -386,7 +389,6 @@
 
       const originalData = JSON.parse(JSON.stringify(candidates[targetIndex]));
       
-      // 邏輯連動機制 (本地端 UI 狀態先行更新，提供使用者無延遲體驗)
       if (type === 'checkin') {
         candidates[targetIndex].status_checkin = !isUndo;
         candidates[targetIndex].time_checkin = isUndo ? '' : timeString;
@@ -413,7 +415,6 @@
       updateSyncStatus(true);
 
       try {
-        // 【系統化思維】建構請求佇列，確保雲端資料與本地 UI 連動清除
         const payloads = [{ rowIndex, type, isUndo, timeString }];
         
         if (type === 'checkin' && isUndo) {
@@ -423,7 +424,6 @@
           payloads.push({ rowIndex, type: 'interview', isUndo: true, timeString: '' });
         }
 
-        // 依序執行 API 請求，避免 Google Sheets 同時寫入造成鎖定衝突 (Race Condition)
         for (const p of payloads) {
           const response = await fetch(API_URL, {
             method: 'POST',
@@ -446,7 +446,61 @@
       }
     }
 
-    // --- 畫面渲染與邏輯 ---
+    // --- 新增：一鍵清空狀態邏輯 ---
+    async function handleReset(rowIndex) {
+      const targetIndex = candidates.findIndex(c => c._rowIndex === rowIndex);
+      if (targetIndex === -1) return;
+
+      const candidate = candidates[targetIndex];
+      // 防呆：如果原本就沒有任何狀態，不執行動作
+      if (!candidate.status_checkin && !candidate.status_call && !candidate.status_interview) return;
+
+      const originalData = JSON.parse(JSON.stringify(candidate));
+
+      // 本地狀態先行歸零
+      candidate.status_checkin = false;
+      candidate.time_checkin = '';
+      candidate.status_call = false;
+      candidate.time_call = '';
+      candidate.status_interview = false;
+      candidate.time_interview = '';
+
+      renderDashboard();
+      renderTable();
+      updateSyncStatus(true);
+      showToast(`已清空 ${extractName(candidate)} 的所有狀態`, 'success');
+
+      try {
+        // 建構請求佇列，強制送出三個取消指令以確保雲端乾淨
+        const payloads = [
+          { rowIndex, type: 'checkin', isUndo: true, timeString: '' },
+          { rowIndex, type: 'call', isUndo: true, timeString: '' },
+          { rowIndex, type: 'interview', isUndo: true, timeString: '' }
+        ];
+
+        for (const p of payloads) {
+          const response = await fetch(API_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+            body: JSON.stringify(p)
+          });
+          
+          const result = await response.json();
+          if (result.status !== 'success') throw new Error(result.message);
+        }
+        
+        updateSyncStatus(false);
+      } catch (error) {
+        console.error('Reset error:', error);
+        showToast('雲端重置失敗，資料將恢復原狀。請檢查網路連線。', 'error');
+        // 恢復原本狀態
+        candidates[targetIndex] = originalData;
+        renderDashboard();
+        renderTable();
+        updateSyncStatus(false, true);
+      }
+    }
+
     function updateGroupDropdown() {
       const currentVal = groupFilter.value;
       const groups = [...new Set(candidates.map(c => String(c['組別'])).filter(g => g && g !== 'undefined'))]
@@ -556,7 +610,7 @@
       if (filtered.length === 0) {
         tableBody.innerHTML = `
           <tr>
-            <td colspan="6" class="py-12 text-center text-slate-400">
+            <td colspan="7" class="py-12 text-center text-slate-400">
               <i data-lucide="alert-circle" class="mx-auto mb-3 opacity-50 w-8 h-8"></i>
               沒有符合條件的資料
             </td>
@@ -570,9 +624,12 @@
         const displayName = extractName(c);
         let actionCellsHTML = '';
         
+        // 判斷是否完全沒有狀態（用於重置按鈕的防呆）
+        const hasNoStatus = !c.status_checkin && !c.status_call && !c.status_interview;
+        
         if (c['出席'] === '否') {
           actionCellsHTML = `
-            <td colspan="4" class="py-3 px-3 md:px-4">
+            <td colspan="5" class="py-3 px-3 md:px-4">
               <div class="bg-red-50 text-red-600 border border-red-100 rounded-lg px-4 py-2 w-full md:max-w-xs flex items-center justify-center gap-2">
                 <i data-lucide="x-circle" class="w-4 h-4"></i>
                 <span class="font-bold text-sm">已回覆無法出席</span>
@@ -580,7 +637,7 @@
             </td>`;
         } else if (c['出席'] === '未') {
           actionCellsHTML = `
-            <td colspan="4" class="py-3 px-3 md:px-4">
+            <td colspan="5" class="py-3 px-3 md:px-4">
               <div class="bg-amber-50 text-amber-700 border border-amber-100 rounded-lg px-4 py-2 w-full md:max-w-sm flex items-center gap-2">
                 <i data-lucide="alert-triangle" class="w-4 h-4 flex-shrink-0"></i>
                 <span class="font-bold text-sm">未回覆是否通過一階國考 <span class="text-xs opacity-80 font-normal">(不應出席)</span></span>
@@ -653,6 +710,17 @@
                   ${c.status_call ? '完成面談' : (c.status_checkin ? '等待叫號' : '等待報到')}
                 </button>
               `}
+            </td>
+            
+            <!-- 管理操作區：清空狀態按鈕 -->
+            <td class="py-3 px-2 text-center">
+              <button onclick="handleReset(${c._rowIndex})" 
+                class="inline-flex items-center justify-center p-2 rounded-full text-slate-400 transition-colors ${
+                  hasNoStatus ? 'opacity-30 cursor-not-allowed pointer-events-none' : 'hover:bg-red-50 hover:text-red-500'
+                }"
+                title="清空所有狀態">
+                <i data-lucide="rotate-ccw" class="w-4 h-4 md:w-5 md:h-5"></i>
+              </button>
             </td>
             <td class="w-full"></td> <!-- 補齊佔位用的空欄位 -->
           `;
