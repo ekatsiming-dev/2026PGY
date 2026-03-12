@@ -85,7 +85,7 @@
     <!-- 左側邊欄：QR Code 與 各組進度 -->
     <aside class="w-full lg:w-[280px] xl:w-[320px] flex flex-col gap-4 shrink-0">
       
-      <!-- QR Code 區塊 -->
+      <!-- QR Code 區塊 (新增議程按鈕) -->
       <div class="bg-white rounded-xl shadow-lg border border-slate-100 p-4 flex flex-col items-center justify-center text-center shrink-0">
         <h3 class="font-bold text-primary mb-3 flex items-center gap-1.5 text-base">
           <i data-lucide="smartphone" class="w-5 h-5 text-accent"></i> 手機即時看
@@ -94,6 +94,11 @@
           <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&margin=1&data=https://ekatsiming-dev.github.io/2026PGY/0315visit.html" alt="手機版 QR Code" class="w-28 h-28 lg:w-32 lg:h-32 object-contain">
         </div>
         <p class="text-xs text-slate-500 font-bold tracking-wide">掃描條碼，掌握最新叫號</p>
+        
+        <!-- 活動議程展開按鈕 -->
+        <button onclick="toggleAgendaModal()" class="mt-4 w-full bg-slate-50 hover:bg-slate-100 text-primary border border-slate-200 shadow-sm font-bold py-2.5 px-4 rounded-lg text-sm transition-all duration-200 flex items-center justify-center gap-2 group">
+          <i data-lucide="calendar-days" class="w-4 h-4 text-accent group-hover:scale-110 transition-transform"></i> 查看今日活動議程
+        </button>
       </div>
 
       <!-- 各組面談進度區塊 -->
@@ -181,6 +186,141 @@
 
   </main>
 
+  <!-- 互動彈窗：活動議程 Modal -->
+  <div id="agendaModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
+    <div class="bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[85vh] flex flex-col transform scale-95 transition-transform duration-300" id="agendaModalContent">
+      
+      <!-- Modal 標題 -->
+      <div class="bg-primary text-white p-4 rounded-t-xl flex justify-between items-center shrink-0 shadow-sm">
+        <h2 class="text-lg font-black tracking-widest flex items-center gap-2">
+          <i data-lucide="calendar-check-2" class="w-5 h-5 text-accent"></i> 今日甄選活動議程
+        </h2>
+        <button onclick="toggleAgendaModal()" class="text-white hover:text-accent transition-colors p-1 bg-white/10 hover:bg-white/20 rounded-md">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+      
+      <!-- Modal 內容 (雙梯次時間表) -->
+      <div class="p-4 lg:p-6 overflow-y-auto no-scrollbar flex-1 bg-slate-50">
+        
+        <!-- 上午梯 -->
+        <div class="mb-6 fade-in" style="animation-delay: 0.1s;">
+          <div class="flex items-center gap-2 mb-2">
+            <span class="bg-accent text-primary font-black py-1 px-3 rounded text-sm shadow-sm tracking-widest">上午梯</span>
+            <span class="text-slate-400 text-xs font-bold">08:30 - 12:00</span>
+          </div>
+          <div class="bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden">
+            <table class="w-full text-sm text-left">
+              <thead class="bg-slate-100 text-slate-600 border-b border-slate-200 hidden sm:table-header-group">
+                <tr>
+                  <th class="py-2.5 px-4 font-bold w-1/4">時間</th>
+                  <th class="py-2.5 px-4 font-bold w-2/5">內容</th>
+                  <th class="py-2.5 px-4 font-bold w-[35%]">主講者</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-100 flex flex-col sm:table-row-group">
+                <!-- Row 1 -->
+                <tr class="hover:bg-slate-50 flex flex-col sm:table-row p-3 sm:p-0">
+                  <td class="py-1 sm:py-3 px-1 sm:px-4 font-mono text-slate-500 sm:font-bold">08:30-09:00</td>
+                  <td class="py-1 sm:py-3 px-1 sm:px-4 font-bold text-primary sm:text-slate-700 text-base sm:text-sm">學員報到</td>
+                  <td class="py-1 sm:py-3 px-1 sm:px-4 text-slate-500 sm:text-slate-600"></td>
+                </tr>
+                <!-- Row 2 -->
+                <tr class="hover:bg-slate-50 flex flex-col sm:table-row p-3 sm:p-0">
+                  <td class="py-1 sm:py-3 px-1 sm:px-4 font-mono text-slate-500 sm:font-bold">09:00-09:10</td>
+                  <td class="py-1 sm:py-3 px-1 sm:px-4 font-bold text-primary sm:text-slate-700 text-base sm:text-sm">長官致詞</td>
+                  <td class="py-1 sm:py-3 px-1 sm:px-4 text-slate-600 font-medium leading-relaxed">
+                    林宏榮 院長<br>陳志成 副院長
+                  </td>
+                </tr>
+                <!-- Row 3 -->
+                <tr class="hover:bg-slate-50 flex flex-col sm:table-row p-3 sm:p-0">
+                  <td class="py-1 sm:py-3 px-1 sm:px-4 font-mono text-slate-500 sm:font-bold">09:10-09:20</td>
+                  <td class="py-1 sm:py-3 px-1 sm:px-4 font-bold text-primary sm:text-slate-700 text-base sm:text-sm">PGY訓練計畫簡介</td>
+                  <td class="py-1 sm:py-3 px-1 sm:px-4 text-slate-600 font-medium">郭妍伶 主任</td>
+                </tr>
+                <!-- Row 4 -->
+                <tr class="hover:bg-slate-50 flex flex-col sm:table-row p-3 sm:p-0">
+                  <td class="py-1 sm:py-3 px-1 sm:px-4 font-mono text-slate-500 sm:font-bold">09:20-12:00</td>
+                  <td class="py-1 sm:py-3 px-1 sm:px-4 font-bold text-primary sm:text-slate-700 text-base sm:text-sm">
+                    學員面談<br>學長姊交流
+                  </td>
+                  <td class="py-1 sm:py-3 px-1 sm:px-4 text-slate-600 font-medium leading-relaxed">
+                    各科面談官<br>PGY甄選交流代表
+                  </td>
+                </tr>
+                <!-- Row 5 -->
+                <tr class="hover:bg-slate-50 flex flex-col sm:table-row p-3 sm:p-0 bg-slate-50/50">
+                  <td class="py-1 sm:py-3 px-1 sm:px-4 font-mono text-slate-400">12:00</td>
+                  <td class="py-1 sm:py-3 px-1 sm:px-4 font-bold text-slate-500 text-base sm:text-sm">面談結束</td>
+                  <td class="py-1 sm:py-3 px-1 sm:px-4 text-slate-500"></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- 下午梯 -->
+        <div class="fade-in" style="animation-delay: 0.2s;">
+          <div class="flex items-center gap-2 mb-2">
+            <span class="bg-primary text-white font-black py-1 px-3 rounded text-sm shadow-sm tracking-widest">下午梯</span>
+            <span class="text-slate-400 text-xs font-bold">12:30 - 16:00</span>
+          </div>
+          <div class="bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden">
+            <table class="w-full text-sm text-left">
+              <thead class="bg-slate-100 text-slate-600 border-b border-slate-200 hidden sm:table-header-group">
+                <tr>
+                  <th class="py-2.5 px-4 font-bold w-1/4">時間</th>
+                  <th class="py-2.5 px-4 font-bold w-2/5">內容</th>
+                  <th class="py-2.5 px-4 font-bold w-[35%]">主講者</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-100 flex flex-col sm:table-row-group">
+                <!-- Row 1 -->
+                <tr class="hover:bg-slate-50 flex flex-col sm:table-row p-3 sm:p-0">
+                  <td class="py-1 sm:py-3 px-1 sm:px-4 font-mono text-slate-500 sm:font-bold">12:30-13:00</td>
+                  <td class="py-1 sm:py-3 px-1 sm:px-4 font-bold text-primary sm:text-slate-700 text-base sm:text-sm">學員報到</td>
+                  <td class="py-1 sm:py-3 px-1 sm:px-4 text-slate-500 sm:text-slate-600"></td>
+                </tr>
+                <!-- Row 2 -->
+                <tr class="hover:bg-slate-50 flex flex-col sm:table-row p-3 sm:p-0">
+                  <td class="py-1 sm:py-3 px-1 sm:px-4 font-mono text-slate-500 sm:font-bold">13:00-13:10</td>
+                  <td class="py-1 sm:py-3 px-1 sm:px-4 font-bold text-primary sm:text-slate-700 text-base sm:text-sm">長官致詞</td>
+                  <td class="py-1 sm:py-3 px-1 sm:px-4 text-slate-600 font-medium leading-relaxed">
+                    林宏榮 院長<br>陳志成 副院長
+                  </td>
+                </tr>
+                <!-- Row 3 -->
+                <tr class="hover:bg-slate-50 flex flex-col sm:table-row p-3 sm:p-0">
+                  <td class="py-1 sm:py-3 px-1 sm:px-4 font-mono text-slate-500 sm:font-bold">13:10-13:20</td>
+                  <td class="py-1 sm:py-3 px-1 sm:px-4 font-bold text-primary sm:text-slate-700 text-base sm:text-sm">PGY訓練計畫簡介</td>
+                  <td class="py-1 sm:py-3 px-1 sm:px-4 text-slate-600 font-medium">郭妍伶 主任</td>
+                </tr>
+                <!-- Row 4 -->
+                <tr class="hover:bg-slate-50 flex flex-col sm:table-row p-3 sm:p-0">
+                  <td class="py-1 sm:py-3 px-1 sm:px-4 font-mono text-slate-500 sm:font-bold">13:20-16:00</td>
+                  <td class="py-1 sm:py-3 px-1 sm:px-4 font-bold text-primary sm:text-slate-700 text-base sm:text-sm">
+                    學員面談<br>學長姊交流
+                  </td>
+                  <td class="py-1 sm:py-3 px-1 sm:px-4 text-slate-600 font-medium leading-relaxed">
+                    各科面談官<br>PGY甄選交流代表
+                  </td>
+                </tr>
+                <!-- Row 5 -->
+                <tr class="hover:bg-slate-50 flex flex-col sm:table-row p-3 sm:p-0 bg-slate-50/50">
+                  <td class="py-1 sm:py-3 px-1 sm:px-4 font-mono text-slate-400">16:00</td>
+                  <td class="py-1 sm:py-3 px-1 sm:px-4 font-bold text-slate-500 text-base sm:text-sm">面談結束</td>
+                  <td class="py-1 sm:py-3 px-1 sm:px-4 text-slate-500"></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
   <script>
     const API_URL = 'https://script.google.com/macros/s/AKfycbzKLj8037In2HuIuOLHwlB_p6UgFAf3dIWcegnZWKAHsME5iYpdSNxzxgPFw85q5oK2aA/exec';
     let currentSession = new Date().getHours() < 12 ? '上午' : '下午'; 
@@ -213,7 +353,37 @@
           setTimeout(() => autoIcon.classList.add('hidden'), 1000);
         });
       }, 15000);
+
+      // 設定 Modal 點擊背景關閉與 ESC 鍵關閉
+      const modal = document.getElementById('agendaModal');
+      modal.addEventListener('click', function(e) {
+        if (e.target === this) toggleAgendaModal();
+      });
+      document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && !modal.classList.contains('hidden')) {
+          toggleAgendaModal();
+        }
+      });
     });
+
+    // 控制活動議程 Modal 的開關
+    function toggleAgendaModal() {
+      const modal = document.getElementById('agendaModal');
+      const content = document.getElementById('agendaModalContent');
+      
+      if (modal.classList.contains('hidden')) {
+        modal.classList.remove('hidden');
+        // 強制重繪以觸發過渡動畫
+        void modal.offsetWidth;
+        modal.classList.remove('opacity-0');
+        content.classList.remove('scale-95');
+      } else {
+        modal.classList.add('opacity-0');
+        content.classList.add('scale-95');
+        // 等待動畫結束後隱藏
+        setTimeout(() => modal.classList.add('hidden'), 300);
+      }
+    }
 
     function updateClock() {
       const now = new Date();
