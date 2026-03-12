@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PGY 規則班抽籤系統</title>
+    <!-- React & ReactDOM -->
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+    <!-- Babel -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+    
+    <style>
+        body { font-family: 'Inter', 'Noto Sans TC', sans-serif; background-color: #f8fafc; }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        .fade-in { animation: fadeIn 0.3s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        // --- 班表資料模型 ---
+        const pgy1Schedule = {
+            "PGY1-1": ["選","選","外","外","社","社","婦","兒","急","內","內","內"],
+            "PGY1-2": ["急","婦","兒","選","外","外","社","社","選","內","內","內"],
+            "PGY1-3": ["選","急","婦","選","外","外","社","社","兒","內","內","內"],
+            "PGY1-4": ["內","內","內","婦","兒","急","選","選","社","社","外","外"],
+            "PGY1-5": ["內","內","內","急","婦","兒","選","選","社","社","外","外"],
+            "PGY1-6": ["內","內","內","兒","急","婦","外","外","選","選","社","社"],
+            "PGY1-7": ["選","兒","急","內","內","內","外","外","婦","選","社","社"],
+            "PGY1-8": ["兒","選","選","內","內","內","急","婦","外","外","社","社"],
+            "PGY1-9": ["婦","選","選","內","內","內","兒","急","外","外","社","社"],
+            "PGY1-10": ["外","外","社","社","選","選","內","內","內","婦","兒","急"],
+            "PGY1-11": ["外","外","社","社","選","選","內","內","內","急","婦","兒"],
+            "PGY1-12": ["選","選","外","外","社","社","內","內","內","兒","急","婦"]
+        };
+
+        const pgy2Schedule = {
+            "PGY2-1": ["選","選","外","外","選","選","老醫","選","急","內","內","內"],
+            "PGY2-2": ["急","老醫","選","選","外","外","選","選","選","內","內","內"],
+            "PGY2-3": ["選","急","老醫","選","外","外","選","選","選","內","內","內"],
+            "PGY2-4": ["內","內","內","老醫","選","急","選","選","選","選","外","外"],
+            "PGY2-5": ["外","外","選","急","老醫","選","內","內","內","選","選","選"],
+            "PGY2-6": ["內","內","內","選","急","老醫","外","外","選","選","選","選"],
+            "PGY2-7": ["選","選","急","內","內","內","選","選","老醫","選","外","外"],
+            "PGY2-8": ["選","選","選","內","內","內","急","老醫","外","外","選","選"],
+            "PGY2-9": ["老醫","選","選","內","內","內","選","急","外","外","選","選"],
+            "PGY2-10": ["外","外","選","選","選","選","內","內","內","老醫","選","急"],
+            "PGY2-11": ["內","內","內","選","選","選","外","外","選","急","老醫","選"],
+            "PGY2-12": ["選","選","外","外","選","選","內","內","內","選","急","老醫"]
+        };
+
+        // --- 核心演算法：Fisher-Yates 隨機洗牌 ---
+        const shuffleArray = (array) => {
+            const newArr = [...array];
+            for (let i = newArr.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [newArr[i], newArr[j]] = [newArr[j], newArr[i]];
+            }
+            return newArr;
+        };
+
+        // --- 輔助圖示 (SVG) ---
+        const IconSettings = () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>;
+        const IconRefresh = () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/></svg>;
+        const IconCopy = () => <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>;
+        const IconAlert = () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>;
+
+        const App = () => {
+            const [tab, setTab] = React.useState('PGY1');
+            const [names, setNames] = React.useState({ PGY1: '', PGY2: '' });
+            const [locks, setLocks] = React.useState({ PGY1: {}, PGY2: {} });
+            const [results, setResults] = React.useState({ PGY1: null, PGY2: null });
+            const [toast, setToast] = React.useState(null);
+
+            const currentNames = names[tab];
+            const currentLocks = locks[tab];
+            const currentResults = results[tab];
+            const currentSchedule = tab === 'PGY1' ? pgy1Schedule : pgy2Schedule;
+            const groupKeys = Object.keys(currentSchedule);
+
+            // 解析名單人數
+            const nameArray = currentNames.split(/[\n,、\t]+/).map(n => n.trim()).filter(n => n !== '');
+            const totalPeople = nameArray.length;
+
+            const showToast = (msg) => {
+                setToast(msg);
+                setTimeout(() => setToast(null), 3500);
+            };
+
+            const handleLockChange = (group, checked) => {
+                const newLocks = { ...locks };
+                if (checked) {
+                    newLocks[tab][group] = 0; // 預設輸入 0
+                } else {
+                    delete newLocks[tab][group];
+                }
+                setLocks(newLocks);
+            };
+
+            const handleLockValueChange = (group, val) => {
+                const newLocks = { ...locks };
+                newLocks[tab][group] = isNaN(val) ? 0 : val;
+                setLocks(newLocks);
+            };
+
+            const handleDraw = () => {
+                if (totalPeople === 0) {
+                    showToast('請先匯入參與抽籤的醫師名單！');
+                    return;
+                }
+
+                let lockedSum = 0;
+                let lockedCount = 0;
+                groupKeys.forEach(key => {
+                    if (currentLocks[key] !== undefined) {
+                        lockedSum += currentLocks[key];
+                        lockedCount++;
+                    }
+                });
+
+                const remainingPeople = totalPeople - lockedSum;
+                const unlockedCount = groupKeys.length - lockedCount;
+
+                if (remainingPeople < 0) {
+                    showToast('錯誤：指定組別的人數總和已超過名單總人數！');
+                    return;
+                }
+                if (unlockedCount === 0 && remainingPeople > 0) {
+                    showToast('錯誤：所有組別皆已指定固定數量，但名單仍有多餘人數未分配！');
+                    return;
+                }
+
+                // 計算配額
+                const quotas = {};
+                let baseQuota = 0;
+                let remainder = 0;
+
+                if (unlockedCount > 0) {
+                    baseQuota = Math.floor(remainingPeople / unlockedCount);
+                    remainder = remainingPeople % unlockedCount;
+                }
+
+                const unlockedGroups = [];
+                groupKeys.forEach(key => {
+                    if (currentLocks[key] !== undefined) {
+                        quotas[key] = currentLocks[key];
+                    } else {
+                        quotas[key] = baseQuota;
+                        unlockedGroups.push(key);
+                    }
+                });
+
+                // 將餘數隨機分配給未鎖定的組別
+                const shuffledUnlocked = shuffleArray(unlockedGroups);
+                for (let i = 0; i < remainder; i++) {
+                    quotas[shuffledUnlocked[i]]++;
+                }
+
+                // 產生籤筒插槽
+                let slots = [];
+                groupKeys.forEach(key => {
+                    for (let i = 0; i < quotas[key]; i++) {
+                        slots.push(key);
+                    }
+                });
+
+                // 打亂插槽與名單，確保雙重盲抽
+                slots = shuffleArray(slots);
+                const shuffledNames = shuffleArray(nameArray);
+
+                // 分配結果
+                const newResults = groupKeys.map(key => ({
+                    group: key,
+                    schedule: currentSchedule[key],
+                    names: []
+                }));
+
+                shuffledNames.forEach((name, index) => {
+                    const assignedGroup = slots[index];
+                    const groupObj = newResults.find(r => r.group === assignedGroup);
+                    if(groupObj) groupObj.names.push(name);
+                });
+
+                setResults({ ...results, [tab]: newResults });
+                showToast(`✅ ${tab} 抽籤完成！共分配 ${totalPeople} 人。`);
+            };
+
+            const handleCopy = () => {
+                if (!currentResults) return;
+                let text = `【${tab} 抽籤結果】\n\n`;
+                currentResults.forEach(r => {
+                    text += `${r.group} (${r.names.length}人)：${r.names.length > 0 ? r.names.join('、') : '無'}\n`;
+                    text += `班表：${r.schedule.join(',')}\n\n`;
+                });
+                navigator.clipboard.writeText(text);
+                showToast('已將抽籤結果複製到剪貼簿！');
+            };
+
+            return (
+                <div className="min-h-screen flex flex-col">
+                    {/* Hero Section */}
+                    <header className="bg-[#003566] pt-12 pb-16 px-4 text-center shadow-md relative">
+                        <h1 className="text-3xl md:text-5xl font-bold text-white tracking-wide mb-4">PGY 規則班抽籤系統</h1>
+                        <p className="text-blue-200 max-w-2xl mx-auto text-sm md:text-base leading-relaxed">
+                            嚴格的雙層隨機演算法，確保排班過程絕對公平。
+                        </p>
+                    </header>
+
+                    {/* 主要佈局：雙欄 */}
+                    <main className="max-w-7xl mx-auto w-full px-4 -mt-8 pb-16 grid grid-cols-1 lg:grid-cols-12 gap-8 flex-grow relative z-10">
+                        
+                        {/* 左欄：設定區 */}
+                        <div className="lg:col-span-5 bg-white p-6 rounded-2xl shadow-lg border border-slate-200 flex flex-col fade-in">
+                            <h2 className="text-xl font-bold text-[#003566] border-b pb-3 mb-5 flex items-center">
+                                <IconSettings /> <span className="ml-2">抽籤參數設定</span>
+                            </h2>
+                            
+                            {/* 步驟 1: 身分選擇 */}
+                            <div className="mb-6">
+                                <label className="text-sm font-semibold text-slate-700 block mb-2">1. 選擇抽籤身分</label>
+                                <div className="flex bg-slate-100 p-1.5 rounded-lg">
+                                    <button 
+                                        onClick={() => setTab('PGY1')} 
+                                        className={`flex-1 py-2 rounded-md font-bold text-sm transition-all shadow-sm ${tab === 'PGY1' ? 'bg-white text-[#003566] ring-1 ring-slate-200' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'}`}>
+                                        PGY1 規則班
+                                    </button>
+                                    <button 
+                                        onClick={() => setTab('PGY2')} 
+                                        className={`flex-1 py-2 rounded-md font-bold text-sm transition-all shadow-sm ${tab === 'PGY2' ? 'bg-white text-[#003566] ring-1 ring-slate-200' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'}`}>
+                                        PGY2 規則班
+                                    </button>
+                                </div>
+                            </div>
+
+                            {/* 步驟 2: 匯入名單 */}
+                            <div className="mb-6">
+                                <div className="flex justify-between items-end mb-2">
+                                    <label className="text-sm font-semibold text-slate-700">2. 參與人員名單</label>
+                                    <span className="text-sm bg-[#fef9c3] text-[#003566] px-3 py-1 rounded-full font-bold shadow-sm border border-yellow-200">
+                                        自動計數：{totalPeople} 人
+                                    </span>
+                                </div>
+                                <textarea 
+                                    className="w-full h-28 p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#fca311] focus:border-transparent transition-all text-sm"
+                                    placeholder={`請貼上參與 ${tab} 抽籤的名單（支援換行、逗號或空格分隔）...`}
+                                    value={names[tab]}
+                                    onChange={(e) => setNames({ ...names, [tab]: e.target.value })}
+                                />
+                            </div>
+
+                            {/* 步驟 3: 設定配置 */}
+                            <div className="flex-grow flex flex-col min-h-0">
+                                <label className="text-sm font-semibold text-slate-700 mb-1">3. 設定組別數量配置</label>
+                                <p className="text-xs text-slate-500 mb-3">勾選並指定特定組別的人數，未勾選的組別系統將自動平均分配。</p>
+                                
+                                <div className="space-y-2 overflow-y-auto pr-2 flex-grow border border-slate-100 p-2 rounded-lg bg-slate-50">
+                                    {groupKeys.map(group => {
+                                        const isLocked = currentLocks[group] !== undefined;
+                                        return (
+                                            <div key={group} className={`flex items-center justify-between p-3 border rounded-lg transition-colors ${isLocked ? 'bg-white border-[#fca311] shadow-sm' : 'bg-white border-slate-200'}`}>
+                                                <span className="font-bold text-[#003566] w-20">{group}</span>
+                                                <div className="flex items-center space-x-3">
+                                                    <label className="flex items-center text-sm cursor-pointer text-slate-600">
+                                                        <input 
+                                                            type="checkbox" 
+                                                            className="mr-2 w-4 h-4 text-[#003566] rounded border-slate-300 focus:ring-[#fca311]"
+                                                            checked={isLocked} 
+                                                            onChange={(e) => handleLockChange(group, e.target.checked)}
+                                                        />
+                                                        固定名額
+                                                    </label>
+                                                    <input 
+                                                        type="number" 
+                                                        min="0"
+                                                        className={`w-16 p-1.5 border rounded-md text-center text-sm transition-all ${!isLocked ? 'bg-slate-100 text-slate-400 border-slate-200' : 'bg-white border-[#fca311] text-slate-800 focus:ring-2 focus:ring-[#fca311]'}`}
+                                                        disabled={!isLocked}
+                                                        value={isLocked ? currentLocks[group] : ''}
+                                                        placeholder="平均"
+                                                        onChange={(e) => handleLockValueChange(group, parseInt(e.target.value))}
+                                                    />
+                                                </div>
+                                            </div>
+                                        )
+                                    })}
+                                </div>
+                            </div>
+
+                            <button 
+                                onClick={handleDraw}
+                                className="mt-6 w-full py-3.5 bg-[#003566] hover:bg-[#002244] text-white font-bold rounded-lg shadow-md transition-all flex justify-center items-center space-x-2 active:scale-95">
+                                <IconRefresh />
+                                <span>開始隨機分配</span>
+                            </button>
+                        </div>
+
+                        {/* 右欄：結果區 (步驟 4) */}
+                        <div className="lg:col-span-7 bg-white p-6 rounded-2xl shadow-lg border border-slate-200 flex flex-col fade-in relative mt-8 lg:mt-0">
+                            <div className="flex justify-between items-center border-b pb-3 mb-4">
+                                <h2 className="text-xl font-bold text-[#003566] flex items-center">
+                                    4. 抽籤結果與班表
+                                </h2>
+                                <button 
+                                    onClick={handleCopy}
+                                    disabled={!currentResults}
+                                    className={`flex items-center space-x-1 px-4 py-2 rounded-md text-sm font-semibold transition-all ${!currentResults ? 'bg-slate-100 text-slate-400 cursor-not-allowed' : 'bg-[#fef9c3] text-[#003566] hover:bg-[#fde047]'}`}>
+                                    <IconCopy /> <span>複製結果</span>
+                                </button>
+                            </div>
+
+                            {!currentResults ? (
+                                <div className="flex-grow flex flex-col items-center justify-center text-slate-400 space-y-4 py-20">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" className="opacity-20"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="9" y1="3" x2="9" y2="21"/></svg>
+                                    <p>請先於左側依序完成設定，並點擊「開始隨機分配」</p>
+                                </div>
+                            ) : (
+                                <div className="space-y-4 overflow-y-auto pr-2 flex-grow">
+                                    {currentResults.map((res, idx) => (
+                                        <div key={idx} className="border border-slate-200 rounded-xl p-4 bg-slate-50 hover:shadow-md transition-shadow">
+                                            <div className="flex justify-between items-start mb-2">
+                                                <h3 className="font-bold text-lg text-[#003566]">{res.group}</h3>
+                                                <span className="text-xs bg-slate-200 text-slate-600 px-2 py-1 rounded-md font-medium">分配 {res.names.length} 人</span>
+                                            </div>
+                                            
+                                            <div className="mb-3 flex flex-wrap gap-2">
+                                                {res.names.length > 0 ? res.names.map((name, nIdx) => (
+                                                    <span key={nIdx} className="bg-[#fca311] text-[#003566] font-bold text-sm px-3 py-1 rounded-full shadow-sm">
+                                                        {name}
+                                                    </span>
+                                                )) : <span className="text-sm text-slate-400 italic">此組別無人分配</span>}
+                                            </div>
+
+                                            <div className="grid grid-cols-6 md:grid-cols-12 gap-1 mt-3 pt-3 border-t border-slate-200">
+                                                {res.schedule.map((course, i) => (
+                                                    <div key={i} className="flex flex-col items-center bg-white border border-slate-200 rounded p-1">
+                                                        <span className="text-[10px] text-slate-400 font-semibold mb-0.5">M{i+1}</span>
+                                                        <span className="text-xs font-bold text-slate-700">{course}</span>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+
+                    </main>
+
+                    {/* Toast 提示元件 */}
+                    {toast && (
+                        <div className="fixed bottom-6 right-6 bg-slate-800 text-white px-6 py-4 rounded-xl shadow-2xl flex items-center space-x-3 fade-in z-50 max-w-sm">
+                            <IconAlert className="text-[#fca311]" />
+                            <span className="text-sm font-medium leading-relaxed">{toast}</span>
+                        </div>
+                    )}
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
