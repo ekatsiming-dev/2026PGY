@@ -107,14 +107,25 @@
       <!-- 由 JS 動態生成 -->
     </div>
 
-    <!-- 3. 新增：各組賸餘面談監測儀表板 -->
-    <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-5 md:p-6 fade-in">
-      <h2 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
-        <i data-lucide="activity" class="text-accent w-5 h-5"></i> 各組賸餘面談數監測
-        <span class="text-xs font-normal text-slate-400 ml-2 bg-slate-100 px-2 py-1 rounded-md">分母為已報到者</span>
-      </h2>
-      <div id="groupDashboardContainer" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-3 md:gap-4 transition-all">
-        <!-- 由 JS 動態生成 -->
+    <!-- 3. 各組賸餘面談監測儀表板 (支援收合展開) -->
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden fade-in">
+      <button id="toggleGroupDashboard" class="w-full flex items-center justify-between p-4 md:p-5 bg-white hover:bg-slate-50 transition-colors focus:outline-none">
+        <div class="flex items-center gap-2">
+          <i data-lucide="activity" class="text-accent w-5 h-5"></i>
+          <h2 class="text-lg font-bold text-slate-800">各組賸餘面談數監測</h2>
+          <span class="text-xs font-normal text-slate-400 ml-1 md:ml-2 bg-slate-100 px-2 py-1 rounded-md hidden sm:inline-block">分母為已報到者</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <span class="text-xs text-slate-400 hidden sm:inline-block" id="groupDashboardStatusText">點擊展開詳細進度</span>
+          <i data-lucide="chevron-down" id="groupDashboardChevron" class="w-5 h-5 text-slate-400 transition-transform duration-300"></i>
+        </div>
+      </button>
+      
+      <!-- 展開的內容區 (預設隱藏) -->
+      <div id="groupDashboardContent" class="hidden border-t border-slate-100 bg-slate-50/50">
+        <div id="groupDashboardContainer" class="p-4 md:p-5 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-3 md:gap-4 transition-all">
+          <!-- 由 JS 動態生成 -->
+        </div>
       </div>
     </div>
 
@@ -205,9 +216,15 @@
     const syncStatus = document.getElementById('syncStatus');
     const loadingOverlay = document.getElementById('loadingOverlay');
     const dashboardContainer = document.getElementById('dashboardContainer');
-    const groupDashboardContainer = document.getElementById('groupDashboardContainer');
-    const tableBody = document.getElementById('tableBody');
     
+    // 各組進度面板元素
+    const toggleGroupDashboardBtn = document.getElementById('toggleGroupDashboard');
+    const groupDashboardContent = document.getElementById('groupDashboardContent');
+    const groupDashboardContainer = document.getElementById('groupDashboardContainer');
+    const groupDashboardChevron = document.getElementById('groupDashboardChevron');
+    const groupDashboardStatusText = document.getElementById('groupDashboardStatusText');
+    
+    const tableBody = document.getElementById('tableBody');
     const searchInput = document.getElementById('searchInput');
     const groupFilter = document.getElementById('groupFilter');
     const filterBtns = document.querySelectorAll('.filter-btn');
@@ -223,6 +240,24 @@
       // 綁定搜尋與組別事件
       searchInput.addEventListener('input', renderTable);
       groupFilter.addEventListener('change', renderTable);
+
+      // 綁定各組儀表板收合/展開事件
+      if (toggleGroupDashboardBtn) {
+        toggleGroupDashboardBtn.addEventListener('click', () => {
+          const isHidden = groupDashboardContent.classList.contains('hidden');
+          if (isHidden) {
+            // 展開
+            groupDashboardContent.classList.remove('hidden');
+            groupDashboardChevron.classList.add('rotate-180');
+            if(groupDashboardStatusText) groupDashboardStatusText.textContent = '點擊收合詳細進度';
+          } else {
+            // 收合
+            groupDashboardContent.classList.add('hidden');
+            groupDashboardChevron.classList.remove('rotate-180');
+            if(groupDashboardStatusText) groupDashboardStatusText.textContent = '點擊展開詳細進度';
+          }
+        });
+      }
 
       // 綁定大時段篩選事件
       filterBtns.forEach(btn => {
