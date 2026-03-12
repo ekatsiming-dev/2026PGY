@@ -173,8 +173,13 @@
     </div>
   </main>
 
+  <!-- 回到最上面按鈕 -->
+  <button id="backToTopBtn" class="fixed bottom-6 right-6 z-40 bg-accent text-primary p-3 rounded-full shadow-lg opacity-0 translate-y-10 pointer-events-none transition-all duration-300 hover:bg-amber-400 hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-accent" aria-label="回到最上面">
+    <i data-lucide="arrow-up" class="w-6 h-6"></i>
+  </button>
+
   <!-- 自訂 Toast 提示框容器 -->
-  <div id="toastContainer" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 pointer-events-none"></div>
+  <div id="toastContainer" class="fixed bottom-20 right-5 z-50 flex flex-col gap-2 pointer-events-none"></div>
 
   <script>
     // --- 應用程式狀態 ---
@@ -195,6 +200,7 @@
     const groupFilter = document.getElementById('groupFilter');
     const filterBtns = document.querySelectorAll('.filter-btn');
     const idSuffixContainer = document.getElementById('idSuffixButtons');
+    const backToTopBtn = document.getElementById('backToTopBtn'); 
 
     // --- 初始化 ---
     document.addEventListener('DOMContentLoaded', () => {
@@ -222,6 +228,24 @@
           // 連動更新儀表板與表格
           renderDashboard();
           renderTable();
+        });
+      });
+
+      // --- 回到最上面按鈕邏輯 ---
+      window.addEventListener('scroll', () => {
+        if (window.scrollY > 300) {
+          backToTopBtn.classList.remove('opacity-0', 'translate-y-10', 'pointer-events-none');
+          backToTopBtn.classList.add('opacity-100', 'translate-y-0', 'pointer-events-auto');
+        } else {
+          backToTopBtn.classList.add('opacity-0', 'translate-y-10', 'pointer-events-none');
+          backToTopBtn.classList.remove('opacity-100', 'translate-y-0', 'pointer-events-auto');
+        }
+      });
+
+      backToTopBtn.addEventListener('click', () => {
+        window.scrollTo({
+          top: 0,
+          behavior: 'smooth'
         });
       });
     });
@@ -255,7 +279,7 @@
       });
     }
 
-    // --- 自訂提示框 (取代 alert) ---
+    // --- 自訂提示框 ---
     function showToast(message, type = 'error') {
       const toast = document.createElement('div');
       const bgColor = type === 'error' ? 'bg-red-600' : 'bg-slate-800';
@@ -283,20 +307,19 @@
       return fuzzyKey ? c[fuzzyKey] : '未知';
     }
 
-    // --- 輔助函式：時間格式化 (UTC 轉台北時間，並優化顯示) ---
+    // --- 輔助函式：時間格式化 ---
     function formatTime(timeStr) {
       if (!timeStr) return '';
       try {
         const date = new Date(timeStr);
         if (isNaN(date.getTime())) return timeStr;
-        // 節省手機版面寬度，且此系統為當日追蹤，僅顯示時間 (HH:mm:ss)
         return date.toLocaleTimeString('zh-TW', {
           timeZone: 'Asia/Taipei',
           hour12: false,
           hour: '2-digit', minute: '2-digit', second: '2-digit'
         });
       } catch (e) {
-        return timeStr; // 解析失敗則原樣輸出
+        return timeStr;
       }
     }
 
@@ -363,7 +386,7 @@
 
       const originalData = JSON.parse(JSON.stringify(candidates[targetIndex]));
       
-      // 邏輯連動機制
+      // 邏輯連動機制 (本地端 UI 狀態先行更新，提供使用者無延遲體驗)
       if (type === 'checkin') {
         candidates[targetIndex].status_checkin = !isUndo;
         candidates[targetIndex].time_checkin = isUndo ? '' : timeString;
@@ -390,15 +413,27 @@
       updateSyncStatus(true);
 
       try {
-        const payload = { rowIndex, type, isUndo, timeString };
-        const response = await fetch(API_URL, {
-          method: 'POST',
-          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-          body: JSON.stringify(payload)
-        });
+        // 【系統化思維】建構請求佇列，確保雲端資料與本地 UI 連動清除
+        const payloads = [{ rowIndex, type, isUndo, timeString }];
         
-        const result = await response.json();
-        if (result.status !== 'success') throw new Error(result.message);
+        if (type === 'checkin' && isUndo) {
+          payloads.push({ rowIndex, type: 'call', isUndo: true, timeString: '' });
+          payloads.push({ rowIndex, type: 'interview', isUndo: true, timeString: '' });
+        } else if (type === 'call' && isUndo) {
+          payloads.push({ rowIndex, type: 'interview', isUndo: true, timeString: '' });
+        }
+
+        // 依序執行 API 請求，避免 Google Sheets 同時寫入造成鎖定衝突 (Race Condition)
+        for (const p of payloads) {
+          const response = await fetch(API_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+            body: JSON.stringify(p)
+          });
+          
+          const result = await response.json();
+          if (result.status !== 'success') throw new Error(result.message);
+        }
         
         updateSyncStatus(false);
       } catch (error) {
@@ -442,10 +477,8 @@
 
       const stats = { 上午: calcStats('上午'), 下午: calcStats('下午') };
       
-      // 根據篩選時段決定要顯示的儀表板
       const sessionsToShow = filterSession === '全部' ? ['上午', '下午'] : [filterSession];
       
-      // 動態調整排版：單一時段時置中並縮減寬度
       dashboardContainer.className = sessionsToShow.length === 1 
         ? 'grid grid-cols-1 gap-4 md:gap-6 max-w-2xl mx-auto transition-all fade-in' 
         : 'grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6 transition-all fade-in';
@@ -503,12 +536,9 @@
       const groupVal = groupFilter.value;
 
       const filtered = candidates.filter(c => {
-        // 1. 時段篩選
         const matchSession = filterSession === '全部' || c['時段'] === filterSession;
-        // 2. 組別篩選
         const matchGroup = groupVal === '全部' || String(c['組別']) === groupVal;
         
-        // 3. 尾數篩選 (按鍵式)
         let matchSuffix = true;
         if (filterIdSuffix !== '') {
           const sid = String(c['身分證字號'] || '');
@@ -516,7 +546,6 @@
           matchSuffix = sid.endsWith(filterIdSuffix) || idStr.endsWith(filterIdSuffix);
         }
 
-        // 4. 關鍵字篩選
         const displayName = extractName(c);
         const searchStr = `${displayName} ${c['ID'] || ''} ${c['NO'] || ''} ${c['組序'] || c._groupOrder || ''}`.toLowerCase();
         const matchKeyword = searchStr.includes(keyword);
