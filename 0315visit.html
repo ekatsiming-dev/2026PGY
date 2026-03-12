@@ -15,7 +15,7 @@
             primary: '#003566',
             accent: '#fca311',
             highlight: '#fef9c3',
-            base: '#f8fafc'
+            surface: '#f8fafc'
           },
           fontFamily: {
             sans: ['Inter', 'Noto Sans TC', 'sans-serif']
@@ -88,8 +88,8 @@
       <!-- QR Code 區塊 (高度極致壓縮版) -->
       <div class="bg-white rounded-xl shadow-lg border border-slate-100 p-2.5 lg:p-4 flex flex-col shrink-0 gap-2 lg:gap-3">
         
-        <!-- 手機看進度標題 -->
-        <h3 class="font-bold text-primary flex items-center justify-center gap-1.5 text-sm lg:text-base">
+        <!-- 手機看進度標題 (已調整為 text-slate-800) -->
+        <h3 class="font-bold text-slate-800 flex items-center justify-center gap-1.5 text-sm lg:text-base">
           <i data-lucide="smartphone" class="w-4 h-4 lg:w-5 lg:h-5 text-accent"></i> 手機即時看
         </h3>
 
@@ -122,7 +122,8 @@
       <!-- 各組面談進度區塊 -->
       <div class="bg-white rounded-xl shadow-lg border border-slate-100 flex flex-col flex-1 lg:overflow-hidden">
         <div class="bg-slate-50 py-2 px-3 lg:py-3 lg:px-4 border-b border-slate-200 shrink-0">
-          <h3 class="font-bold text-primary flex items-center gap-1.5 lg:gap-2 text-[13px] lg:text-base">
+          <!-- 各組進度標題 (已調整為 text-slate-800) -->
+          <h3 class="font-bold text-slate-800 flex items-center gap-1.5 lg:gap-2 text-[13px] lg:text-base">
             <i data-lucide="bar-chart-2" class="w-4 h-4 lg:w-5 lg:h-5 text-accent"></i> 各組進度 (完成面談數/總數)
           </h3>
         </div>
@@ -140,6 +141,7 @@
       <!-- 表頭與過濾控制區 -->
       <div class="bg-slate-50 py-2 lg:py-3 px-3 lg:px-5 border-b border-slate-200 flex flex-col lg:flex-row justify-between items-start lg:items-center gap-2 lg:gap-3 shrink-0 z-10">
         <div class="flex flex-wrap items-center gap-3 w-full lg:w-auto justify-between lg:justify-start">
+          <!-- 主區塊標題保留 primary 色調，建立層次區隔 -->
           <h2 class="text-sm lg:text-xl font-black text-primary flex items-center gap-1.5 lg:gap-2">
             <i data-lucide="users" class="w-4 h-4 lg:w-5 lg:h-5 text-accent"></i> 現場候位名單
           </h2>
@@ -237,37 +239,26 @@
                 </tr>
               </thead>
               <tbody class="divide-y divide-slate-100 flex flex-col sm:table-row-group">
-                <!-- Row 1 -->
                 <tr class="hover:bg-slate-50 flex flex-col sm:table-row p-2.5 sm:p-0">
                   <td class="py-1 sm:py-3 px-1 sm:px-4 font-mono text-slate-500 sm:font-bold">08:30-09:00</td>
                   <td class="py-1 sm:py-3 px-1 sm:px-4 font-bold text-primary sm:text-slate-700 text-[13px] sm:text-sm">學員報到</td>
                   <td class="py-1 sm:py-3 px-1 sm:px-4 text-slate-500 sm:text-slate-600"></td>
                 </tr>
-                <!-- Row 2 -->
                 <tr class="hover:bg-slate-50 flex flex-col sm:table-row p-2.5 sm:p-0">
                   <td class="py-1 sm:py-3 px-1 sm:px-4 font-mono text-slate-500 sm:font-bold">09:00-09:10</td>
                   <td class="py-1 sm:py-3 px-1 sm:px-4 font-bold text-primary sm:text-slate-700 text-[13px] sm:text-sm">長官致詞</td>
-                  <td class="py-1 sm:py-3 px-1 sm:px-4 text-slate-600 font-medium leading-relaxed">
-                    林宏榮 院長<br>陳志成 副院長
-                  </td>
+                  <td class="py-1 sm:py-3 px-1 sm:px-4 text-slate-600 font-medium leading-relaxed">林宏榮 院長<br>陳志成 副院長</td>
                 </tr>
-                <!-- Row 3 -->
                 <tr class="hover:bg-slate-50 flex flex-col sm:table-row p-2.5 sm:p-0">
                   <td class="py-1 sm:py-3 px-1 sm:px-4 font-mono text-slate-500 sm:font-bold">09:10-09:20</td>
                   <td class="py-1 sm:py-3 px-1 sm:px-4 font-bold text-primary sm:text-slate-700 text-[13px] sm:text-sm">PGY訓練計畫簡介</td>
                   <td class="py-1 sm:py-3 px-1 sm:px-4 text-slate-600 font-medium">郭妍伶 主任</td>
                 </tr>
-                <!-- Row 4 -->
                 <tr class="hover:bg-slate-50 flex flex-col sm:table-row p-2.5 sm:p-0">
                   <td class="py-1 sm:py-3 px-1 sm:px-4 font-mono text-slate-500 sm:font-bold">09:20-12:00</td>
-                  <td class="py-1 sm:py-3 px-1 sm:px-4 font-bold text-primary sm:text-slate-700 text-[13px] sm:text-sm">
-                    學員面談<br>學長姊交流
-                  </td>
-                  <td class="py-1 sm:py-3 px-1 sm:px-4 text-slate-600 font-medium leading-relaxed">
-                    各科面談官<br>PGY甄選交流代表
-                  </td>
+                  <td class="py-1 sm:py-3 px-1 sm:px-4 font-bold text-primary sm:text-slate-700 text-[13px] sm:text-sm">學員面談<br>學長姊交流</td>
+                  <td class="py-1 sm:py-3 px-1 sm:px-4 text-slate-600 font-medium leading-relaxed">各科面談官<br>PGY甄選交流代表</td>
                 </tr>
-                <!-- Row 5 -->
                 <tr class="hover:bg-slate-50 flex flex-col sm:table-row p-2.5 sm:p-0 bg-slate-50/50">
                   <td class="py-1 sm:py-3 px-1 sm:px-4 font-mono text-slate-400">12:00</td>
                   <td class="py-1 sm:py-3 px-1 sm:px-4 font-bold text-slate-500 text-[13px] sm:text-sm">面談結束</td>
@@ -294,37 +285,26 @@
                 </tr>
               </thead>
               <tbody class="divide-y divide-slate-100 flex flex-col sm:table-row-group">
-                <!-- Row 1 -->
                 <tr class="hover:bg-slate-50 flex flex-col sm:table-row p-2.5 sm:p-0">
                   <td class="py-1 sm:py-3 px-1 sm:px-4 font-mono text-slate-500 sm:font-bold">12:30-13:00</td>
                   <td class="py-1 sm:py-3 px-1 sm:px-4 font-bold text-primary sm:text-slate-700 text-[13px] sm:text-sm">學員報到</td>
                   <td class="py-1 sm:py-3 px-1 sm:px-4 text-slate-500 sm:text-slate-600"></td>
                 </tr>
-                <!-- Row 2 -->
                 <tr class="hover:bg-slate-50 flex flex-col sm:table-row p-2.5 sm:p-0">
                   <td class="py-1 sm:py-3 px-1 sm:px-4 font-mono text-slate-500 sm:font-bold">13:00-13:10</td>
                   <td class="py-1 sm:py-3 px-1 sm:px-4 font-bold text-primary sm:text-slate-700 text-[13px] sm:text-sm">長官致詞</td>
-                  <td class="py-1 sm:py-3 px-1 sm:px-4 text-slate-600 font-medium leading-relaxed">
-                    林宏榮 院長<br>陳志成 副院長
-                  </td>
+                  <td class="py-1 sm:py-3 px-1 sm:px-4 text-slate-600 font-medium leading-relaxed">林宏榮 院長<br>陳志成 副院長</td>
                 </tr>
-                <!-- Row 3 -->
                 <tr class="hover:bg-slate-50 flex flex-col sm:table-row p-2.5 sm:p-0">
                   <td class="py-1 sm:py-3 px-1 sm:px-4 font-mono text-slate-500 sm:font-bold">13:10-13:20</td>
                   <td class="py-1 sm:py-3 px-1 sm:px-4 font-bold text-primary sm:text-slate-700 text-[13px] sm:text-sm">PGY訓練計畫簡介</td>
                   <td class="py-1 sm:py-3 px-1 sm:px-4 text-slate-600 font-medium">郭妍伶 主任</td>
                 </tr>
-                <!-- Row 4 -->
                 <tr class="hover:bg-slate-50 flex flex-col sm:table-row p-2.5 sm:p-0">
                   <td class="py-1 sm:py-3 px-1 sm:px-4 font-mono text-slate-500 sm:font-bold">13:20-16:00</td>
-                  <td class="py-1 sm:py-3 px-1 sm:px-4 font-bold text-primary sm:text-slate-700 text-[13px] sm:text-sm">
-                    學員面談<br>學長姊交流
-                  </td>
-                  <td class="py-1 sm:py-3 px-1 sm:px-4 text-slate-600 font-medium leading-relaxed">
-                    各科面談官<br>PGY甄選交流代表
-                  </td>
+                  <td class="py-1 sm:py-3 px-1 sm:px-4 font-bold text-primary sm:text-slate-700 text-[13px] sm:text-sm">學員面談<br>學長姊交流</td>
+                  <td class="py-1 sm:py-3 px-1 sm:px-4 text-slate-600 font-medium leading-relaxed">各科面談官<br>PGY甄選交流代表</td>
                 </tr>
-                <!-- Row 5 -->
                 <tr class="hover:bg-slate-50 flex flex-col sm:table-row p-2.5 sm:p-0 bg-slate-50/50">
                   <td class="py-1 sm:py-3 px-1 sm:px-4 font-mono text-slate-400">16:00</td>
                   <td class="py-1 sm:py-3 px-1 sm:px-4 font-bold text-slate-500 text-[13px] sm:text-sm">面談結束</td>
