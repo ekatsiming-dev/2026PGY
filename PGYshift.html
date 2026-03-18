@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PGY 規則班抽籤系統</title>
+    <title>PGY 規則班抽籤系統 | 質感版</title>
     <!-- React & ReactDOM -->
     <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
@@ -12,19 +12,38 @@
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
     
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            red: '#a94438',    /* 質感磚紅 */
+                            navy: '#3a4a61',   /* 深海軍藍 */
+                            cream: '#f4f1ea',  /* 暖調白 */
+                            dark: '#0f0f0f'    /* 深邃黑 */
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
     <style>
-        body { font-family: 'Inter', 'Noto Sans TC', sans-serif; background-color: #f8fafc; }
+        body { font-family: 'Inter', 'Noto Sans TC', sans-serif; background-color: #f4f1ea; }
         ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
-        .fade-in { animation: fadeIn 0.3s ease-in-out; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; border: 2px solid #f4f1ea; }
+        ::-webkit-scrollbar-thumb:hover { background: #a94438; }
+        .fade-in { animation: fadeIn 0.4s ease-out forwards; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+        .scale-in { animation: scaleIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+        @keyframes scaleIn { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
     </style>
 </head>
-<body>
+<body class="text-brand-dark">
     <div id="root"></div>
 
     <script type="text/babel">
@@ -44,7 +63,6 @@
             "PGY1-G12": ["選","選","外","外","社","社","內","內","內","兒","急","婦"]
         };
 
-        // 特助提示：帶有井字號 '#' 的站別代表分科者之專科訓練站別。
         const pgy2Schedule = {
             "PGY2-G01": ["選#","選#","外#","外#","選","選","老醫","選","急","內#","內#","內#"],
             "PGY2-G02": ["急","老醫","選","選","外#","外#","選#","選#","選","內#","內#","內#"],
@@ -60,6 +78,10 @@
             "PGY2-G12": ["選#","選#","外#","外#","選","選","內#","內#","內#","選","急","老醫"]
         };
 
+        // --- 預設測試名單 ---
+        const MOCK_PGY1_NAMES = "陳冠宇, 林佳樺, 張子軒, 李冠廷, 王詩婷, 吳宗翰, 劉奕辰, 蔡承恩, 楊雅涵, 許明哲, 鄭宇涵, 謝柏凱, 郭俊傑, 邱柏翰, 曾品睿, 黃柏宇, 林宜蓁, 洪佳慧, 游家瑋, 彭子萱, 潘柏丞, 葉承翰, 蔡孟哲, 莊詠晴, 蘇俊宏, 簡柏宇, 蕭家維, 呂品萱, 羅翊綺, 施博文, 柯詠晴, 詹子晴, 連建銘, 白宇軒, 卓佳霖, 馮宇翔";
+        const MOCK_PGY2_NAMES = "趙宇軒, 錢盈盈, 孫冠霖, 李佳穎, 吳柏毅, 鄭文傑, 王思婷, 馮子維, 陳品涵, 褚明哲, 衛斯理, 蔣欣宜, 沈佳宜, 韓森, 朱立倫, 秦子瑄, 尤佳莉, 許光漢, 何必問, 呂秀蓮, 施崇棠, 張鈞甯";
+
         // --- 核心演算法：Fisher-Yates 隨機洗牌 ---
         const shuffleArray = (array) => {
             const newArr = [...array];
@@ -73,16 +95,28 @@
         // --- 輔助圖示 (SVG) ---
         const IconSettings = () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>;
         const IconRefresh = () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/></svg>;
-        const IconCopy = () => <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>;
+        const IconCopy = () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>;
         const IconAlert = () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>;
         const IconInfo = () => <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>;
+        const IconCheck = () => <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>;
+        const IconGift = () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 12 20 22 4 22 4 12"></polyline><rect x="2" y="7" width="20" height="5"></rect><line x1="12" y1="22" x2="12" y2="7"></line><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"></path><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"></path></svg>;
+        const IconClock = () => <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>;
 
         const App = () => {
             const [tab, setTab] = React.useState('PGY1');
-            const [startMonth, setStartMonth] = React.useState(8); // 預設 8 月起訓
-            const [names, setNames] = React.useState({ PGY1: '', PGY2: '' });
+            const [startMonth, setStartMonth] = React.useState(8); 
+            const [names, setNames] = React.useState({ PGY1: MOCK_PGY1_NAMES, PGY2: MOCK_PGY2_NAMES });
             const [locks, setLocks] = React.useState({ PGY1: {}, PGY2: {} });
+            
+            // 核心資料狀態
             const [results, setResults] = React.useState({ PGY1: null, PGY2: null });
+            const [drawTimes, setDrawTimes] = React.useState({ PGY1: null, PGY2: null }); // 儲存時間戳記
+            
+            // 儀式感狀態
+            const [isDrawing, setIsDrawing] = React.useState(false);
+            const [showResultButton, setShowResultButton] = React.useState(false);
+            const [tempResults, setTempResults] = React.useState(null);
+
             const [toast, setToast] = React.useState(null);
 
             const currentNames = names[tab];
@@ -95,7 +129,6 @@
             const nameArray = currentNames.split(/[\n,、\t]+/).map(n => n.trim()).filter(n => n !== '');
             const totalPeople = nameArray.length;
 
-            // 計算當下 M 站別對應的真實月份 (mIndex 從 0 開始)
             const getRealMonth = (mIndex) => {
                 let m = (startMonth + mIndex) % 12;
                 return m === 0 ? 12 : m;
@@ -109,7 +142,7 @@
             const handleLockChange = (group, checked) => {
                 const newLocks = { ...locks };
                 if (checked) {
-                    newLocks[tab][group] = 0; // 預設輸入 0
+                    newLocks[tab][group] = 0; 
                 } else {
                     delete newLocks[tab][group];
                 }
@@ -122,7 +155,7 @@
                 setLocks(newLocks);
             };
 
-            const handleDraw = () => {
+            const triggerDrawProcess = () => {
                 if (totalPeople === 0) {
                     showToast('請先匯入參與抽籤的醫師名單！');
                     return;
@@ -183,7 +216,7 @@
                     }
                 });
 
-                // 打亂插槽與名單，確保雙重盲抽
+                // 雙重盲抽
                 slots = shuffleArray(slots);
                 const shuffledNames = shuffleArray(nameArray);
 
@@ -200,66 +233,195 @@
                     if(groupObj) groupObj.names.push(name);
                 });
 
-                setResults({ ...results, [tab]: newResults });
+                // 觸發儀式感過場
+                setTempResults(newResults);
+                setIsDrawing(true);
+                setShowResultButton(false);
+                setResults({ ...results, [tab]: null }); 
+
+                setTimeout(() => {
+                    setIsDrawing(false);
+                    setShowResultButton(true);
+                }, 2000); // 2秒的抽籤動畫
+            };
+
+            const revealResults = () => {
+                // 產生精確時間戳記
+                const now = new Date();
+                const timeStr = now.toLocaleString('zh-TW', { hour12: false });
+                
+                setDrawTimes(prev => ({ ...prev, [tab]: timeStr }));
+                setResults({ ...results, [tab]: tempResults });
+                setShowResultButton(false);
+                setTempResults(null);
                 showToast(`✅ ${tab} 抽籤完成！共分配 ${totalPeople} 人。`);
             };
 
             const handleCopy = () => {
                 if (!currentResults) return;
-                let text = `【${tab} 抽籤結果】(起訓月: ${startMonth}月)\n\n`;
+                
+                const timeStr = drawTimes[tab] || new Date().toLocaleString('zh-TW', { hour12: false });
+                
+                // 升級：更具結構與專業感的輸出格式
+                let text = `【${tab} 規則班抽籤結果】\n`;
+                text += `▶ 起訓月份：${startMonth}月\n`;
+                text += `▶ 抽籤時間：${timeStr}\n`;
+                text += `--------------------------------------\n\n`;
+                
                 currentResults.forEach(r => {
-                    text += `${r.group} (${r.names.length}人)：${r.names.length > 0 ? r.names.join('、') : '無'}\n`;
-                    // 直接保留原本的排班字串（包含 # 號）
+                    text += `[${r.group}] (${r.names.length}人)\n`;
+                    text += `名單：${r.names.length > 0 ? r.names.join('、') : '無'}\n`;
                     text += `班表：${r.schedule.join(',')}\n\n`;
                 });
-                navigator.clipboard.writeText(text);
-                showToast('已將抽籤結果複製到剪貼簿！');
+                
+                // 雙重保險複製邏輯：處理 iFrame 權限阻擋問題
+                try {
+                    // 方案 A: 現代 Clipboard API
+                    if (navigator.clipboard && window.isSecureContext) {
+                        navigator.clipboard.writeText(text).then(() => {
+                            showToast('已將結果連同時間戳記複製到剪貼簿！');
+                        }).catch(err => {
+                            throw new Error('Clipboard API blocked');
+                        });
+                    } else {
+                        throw new Error('Fallback required');
+                    }
+                } catch (err) {
+                    // 方案 B: 傳統 execCommand 降級回退
+                    const textArea = document.createElement("textarea");
+                    textArea.value = text;
+                    textArea.style.position = "fixed";
+                    textArea.style.left = "-999999px";
+                    textArea.style.top = "-999999px";
+                    document.body.appendChild(textArea);
+                    textArea.focus();
+                    textArea.select();
+                    
+                    try {
+                        document.execCommand('copy');
+                        showToast('已將結果連同時間戳記複製到剪貼簿！');
+                    } catch (fallbackErr) {
+                        showToast('環境限制導致複製失敗，請手動圈選複製。');
+                    } finally {
+                        textArea.remove();
+                    }
+                }
+            };
+
+            const renderRightPanel = () => {
+                if (isDrawing) {
+                    return (
+                        <div className="flex-grow flex flex-col items-center justify-center space-y-6 py-20 fade-in">
+                            <div className="w-16 h-16 border-4 border-brand-red/30 border-t-brand-red rounded-full animate-spin"></div>
+                            <p className="text-xl font-bold text-brand-navy animate-pulse">正在進行雙重盲抽與校驗...</p>
+                            <p className="text-sm text-slate-500">系統正運用 Fisher-Yates 演算法分配中</p>
+                        </div>
+                    );
+                }
+
+                if (showResultButton) {
+                    return (
+                        <div className="flex-grow flex flex-col items-center justify-center space-y-8 py-20 scale-in">
+                            <div className="w-24 h-24 bg-emerald-100 rounded-full flex items-center justify-center text-emerald-600 mb-2 shadow-inner">
+                                <IconCheck />
+                            </div>
+                            <h3 className="text-2xl font-bold text-brand-navy tracking-wide">排班分配已就緒！</h3>
+                            <button 
+                                onClick={revealResults} 
+                                className="flex items-center space-x-2 px-8 py-3.5 bg-brand-red text-white font-bold rounded-full shadow-lg hover:shadow-xl hover:bg-opacity-90 transition-all transform hover:-translate-y-1 active:translate-y-0 text-lg">
+                                <IconGift />
+                                <span>立即觀看結果</span>
+                            </button>
+                        </div>
+                    );
+                }
+
+                if (!currentResults) {
+                    return (
+                        <div className="flex-grow flex flex-col items-center justify-center text-slate-400 space-y-4 py-16 bg-slate-50/50 rounded-xl border border-dashed border-slate-200 mt-4">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" className="opacity-20"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="9" y1="3" x2="9" y2="21"/></svg>
+                            <p>請先於左側依序完成設定，並點擊「開始隨機分配」</p>
+                        </div>
+                    );
+                }
+
+                return (
+                    <div className="space-y-4 overflow-y-auto pr-2 flex-grow fade-in mt-4">
+                        {currentResults.map((res, idx) => (
+                            <div key={idx} className="border border-slate-200/80 rounded-xl p-5 bg-white hover:shadow-lg transition-all duration-300 relative overflow-hidden">
+                                <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-brand-red to-brand-navy/50 opacity-50"></div>
+                                
+                                <div className="flex justify-between items-center mb-4 pl-2">
+                                    <h3 className="font-black text-lg text-brand-navy">{res.group}</h3>
+                                    <span className="text-xs bg-slate-100 text-slate-500 px-2.5 py-1 rounded-md font-bold shadow-sm border border-slate-200/50">分配 {res.names.length} 人</span>
+                                </div>
+                                
+                                <div className="mb-5 flex flex-wrap gap-2 pl-2">
+                                    {res.names.length > 0 ? res.names.map((name, nIdx) => (
+                                        <span key={nIdx} className="bg-white text-brand-navy border border-slate-200 font-bold text-[13px] px-3 py-1 rounded-full shadow-sm hover:border-brand-red/40 hover:bg-brand-red/5 transition-colors cursor-default">
+                                            {name}
+                                        </span>
+                                    )) : <span className="text-sm text-slate-400 italic">此組別無人分配</span>}
+                                </div>
+
+                                <div className="grid grid-cols-4 sm:grid-cols-6 lg:grid-cols-12 gap-2 mt-4 pt-4 border-t border-slate-100 pl-2">
+                                    {res.schedule.map((courseStr, i) => {
+                                        const realMonth = getRealMonth(i);
+                                        return (
+                                            <div key={i} className="flex flex-col items-center justify-center bg-slate-50/80 border border-slate-100 rounded-lg py-2 px-1 shadow-sm transition-all hover:bg-white hover:border-slate-200 hover:shadow">
+                                                <span className="text-[10px] md:text-[11px] text-slate-500 font-medium mb-1 tracking-tight whitespace-nowrap">
+                                                    M{i+1} <span className="text-brand-red/80 font-bold">({realMonth}月)</span>
+                                                </span>
+                                                <span className="text-sm md:text-base font-black text-brand-navy">{courseStr}</span>
+                                            </div>
+                                        )
+                                    })}
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                );
             };
 
             return (
                 <div className="min-h-screen flex flex-col">
-                    {/* Hero Section */}
-                    <header className="bg-[#003566] pt-12 pb-16 px-4 text-center shadow-md relative">
-                        <h1 className="text-3xl md:text-5xl font-bold text-white tracking-wide mb-4">PGY 規則班抽籤系統</h1>
-                        <p className="text-blue-200 max-w-2xl mx-auto text-sm md:text-base leading-relaxed">
+                    <header className="bg-gradient-to-br from-brand-navy to-slate-800 pt-12 pb-16 px-4 text-center shadow-md relative">
+                        <h1 className="text-3xl md:text-5xl font-bold text-white tracking-wide mb-4 drop-shadow-sm">PGY 規則班抽籤系統</h1>
+                        <p className="text-brand-cream/80 max-w-2xl mx-auto text-sm md:text-base leading-relaxed">
                             嚴格的雙層隨機演算法，確保排班過程絕對公平。
                         </p>
                     </header>
 
-                    {/* 主要佈局：雙欄 */}
-                    <main className="max-w-7xl mx-auto w-full px-4 -mt-8 pb-16 grid grid-cols-1 lg:grid-cols-12 gap-8 flex-grow relative z-10">
+                    <main className="max-w-7xl mx-auto w-full px-4 -mt-8 pb-16 grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 flex-grow relative z-10">
                         
-                        {/* 左欄：設定區 */}
-                        <div className="lg:col-span-5 bg-white p-6 rounded-2xl shadow-lg border border-slate-200 flex flex-col fade-in">
-                            <h2 className="text-xl font-bold text-[#003566] border-b pb-3 mb-5 flex items-center">
+                        <div className="lg:col-span-5 bg-white p-6 rounded-2xl shadow-xl border border-slate-200/60 flex flex-col fade-in">
+                            <h2 className="text-xl font-bold text-brand-navy border-b border-slate-100 pb-4 mb-5 flex items-center">
                                 <IconSettings /> <span className="ml-2">抽籤參數設定</span>
                             </h2>
                             
-                            {/* 步驟 1: 身分選擇 */}
                             <div className="mb-5">
-                                <label className="text-sm font-semibold text-slate-700 block mb-2">1. 選擇抽籤身分</label>
-                                <div className="flex bg-slate-100 p-1.5 rounded-lg">
+                                <label className="text-sm font-bold text-slate-700 block mb-2">1. 選擇抽籤身分</label>
+                                <div className="flex bg-slate-50 p-1.5 rounded-xl border border-slate-100">
                                     <button 
                                         onClick={() => setTab('PGY1')} 
-                                        className={`flex-1 py-2 rounded-md font-bold text-sm transition-all shadow-sm ${tab === 'PGY1' ? 'bg-white text-[#003566] ring-1 ring-slate-200' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'}`}>
+                                        className={`flex-1 py-2.5 rounded-lg font-bold text-sm transition-all shadow-sm ${tab === 'PGY1' ? 'bg-white text-brand-navy ring-1 ring-slate-200' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/40 shadow-none'}`}>
                                         PGY1 規則班
                                     </button>
                                     <button 
                                         onClick={() => setTab('PGY2')} 
-                                        className={`flex-1 py-2 rounded-md font-bold text-sm transition-all shadow-sm ${tab === 'PGY2' ? 'bg-white text-[#003566] ring-1 ring-slate-200' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'}`}>
+                                        className={`flex-1 py-2.5 rounded-lg font-bold text-sm transition-all shadow-sm ${tab === 'PGY2' ? 'bg-white text-brand-navy ring-1 ring-slate-200' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/40 shadow-none'}`}>
                                         PGY2 規則班
                                     </button>
                                 </div>
                             </div>
 
-                            {/* 步驟 2: 起訓月份與名單 */}
-                            <div className="mb-6 bg-slate-50 p-4 rounded-xl border border-slate-100">
-                                <div className="flex items-center justify-between mb-3 border-b border-slate-200 pb-3">
-                                    <label className="text-sm font-semibold text-slate-700">2. 設定 M1 起訓月份</label>
+                            <div className="mb-6 bg-slate-50/50 p-4 rounded-xl border border-slate-100">
+                                <div className="flex items-center justify-between mb-4 border-b border-slate-200/80 pb-3">
+                                    <label className="text-sm font-bold text-slate-700">2. 設定 M1 起訓月份</label>
                                     <select 
                                         value={startMonth} 
                                         onChange={(e) => setStartMonth(parseInt(e.target.value))}
-                                        className="py-1 px-3 border border-slate-300 bg-white rounded-md text-sm font-bold text-[#003566] focus:ring-2 focus:ring-[#fca311] focus:outline-none transition-shadow"
+                                        className="py-1.5 px-3 border border-slate-300 bg-white rounded-lg text-sm font-bold text-brand-navy focus:ring-2 focus:ring-brand-red focus:outline-none transition-shadow shadow-sm cursor-pointer"
                                     >
                                         {[...Array(12)].map((_, i) => (
                                             <option key={i+1} value={i+1}>{i+1} 月起訓</option>
@@ -268,35 +430,34 @@
                                 </div>
                                 
                                 <div className="flex justify-between items-end mb-2 mt-2">
-                                    <label className="text-sm font-semibold text-slate-700">參與人員名單</label>
-                                    <span className="text-xs bg-[#fef9c3] text-[#003566] px-2 py-1 rounded-md font-bold shadow-sm border border-yellow-200">
+                                    <label className="text-sm font-bold text-slate-700">參與人員名單 <span className="font-normal text-slate-400 ml-1 text-xs">(已預載測試數據)</span></label>
+                                    <span className="text-xs bg-brand-red/10 text-brand-red px-2 py-1 rounded-md font-bold shadow-sm border border-brand-red/20">
                                         共 {totalPeople} 人
                                     </span>
                                 </div>
                                 <textarea 
-                                    className="w-full h-24 p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#fca311] focus:border-transparent transition-all text-sm leading-relaxed"
+                                    className="w-full h-24 p-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-brand-red focus:border-brand-red transition-all text-sm leading-relaxed text-slate-700 shadow-inner bg-white"
                                     placeholder={`請貼上參與 ${tab} 抽籤的名單（支援換行、逗號或空格分隔）...`}
                                     value={names[tab]}
                                     onChange={(e) => setNames({ ...names, [tab]: e.target.value })}
                                 />
                             </div>
 
-                            {/* 步驟 3: 設定配置 */}
                             <div className="flex-grow flex flex-col min-h-0">
-                                <label className="text-sm font-semibold text-slate-700 mb-1">3. 設定組別數量配置</label>
-                                <p className="text-xs text-slate-500 mb-3">勾選並指定特定組別的人數，未勾選的組別系統將自動平均分配。</p>
+                                <label className="text-sm font-bold text-slate-700 mb-1">3. 設定組別數量配置</label>
+                                <p className="text-xs text-slate-400 mb-3">勾選並指定特定組別的人數，未勾選的組別系統將自動平均分配。</p>
                                 
-                                <div className="space-y-2 overflow-y-auto pr-2 flex-grow border border-slate-100 p-2 rounded-lg bg-slate-50">
+                                <div className="space-y-2 overflow-y-auto pr-2 flex-grow border border-slate-100 p-2 rounded-xl bg-slate-50/50">
                                     {groupKeys.map(group => {
                                         const isLocked = currentLocks[group] !== undefined;
                                         return (
-                                            <div key={group} className={`flex items-center justify-between p-3 border rounded-lg transition-colors ${isLocked ? 'bg-white border-[#fca311] shadow-sm' : 'bg-white border-slate-200'}`}>
-                                                <span className="font-bold text-[#003566] w-20">{group}</span>
-                                                <div className="flex items-center space-x-3">
-                                                    <label className="flex items-center text-sm cursor-pointer text-slate-600">
+                                            <div key={group} className={`flex items-center justify-between p-3 border rounded-xl transition-all ${isLocked ? 'bg-white border-brand-red/40 shadow-sm' : 'bg-white border-slate-200/80 hover:border-slate-300'}`}>
+                                                <span className="font-bold text-brand-navy w-24 shrink-0 whitespace-nowrap">{group}</span>
+                                                <div className="flex items-center space-x-3 shrink-0">
+                                                    <label className="flex items-center text-sm cursor-pointer text-slate-600 font-medium">
                                                         <input 
                                                             type="checkbox" 
-                                                            className="mr-2 w-4 h-4 text-[#003566] rounded border-slate-300 focus:ring-[#fca311]"
+                                                            className="mr-2 w-4 h-4 text-brand-navy rounded border-slate-300 focus:ring-brand-red cursor-pointer"
                                                             checked={isLocked} 
                                                             onChange={(e) => handleLockChange(group, e.target.checked)}
                                                         />
@@ -305,7 +466,7 @@
                                                     <input 
                                                         type="number" 
                                                         min="0"
-                                                        className={`w-16 p-1.5 border rounded-md text-center text-sm transition-all ${!isLocked ? 'bg-slate-100 text-slate-400 border-slate-200' : 'bg-white border-[#fca311] text-slate-800 focus:ring-2 focus:ring-[#fca311]'}`}
+                                                        className={`w-16 p-1.5 border rounded-lg text-center text-sm font-bold transition-all ${!isLocked ? 'bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed' : 'bg-white border-brand-red/50 text-brand-navy focus:ring-2 focus:ring-brand-red shadow-sm'}`}
                                                         disabled={!isLocked}
                                                         value={isLocked ? currentLocks[group] : ''}
                                                         placeholder="平均"
@@ -319,94 +480,67 @@
                             </div>
 
                             <button 
-                                onClick={handleDraw}
-                                className="mt-6 w-full py-3.5 bg-[#003566] hover:bg-[#002244] text-white font-bold rounded-lg shadow-md transition-all flex justify-center items-center space-x-2 active:scale-95">
-                                <IconRefresh />
-                                <span>開始隨機分配</span>
+                                onClick={triggerDrawProcess}
+                                disabled={isDrawing || showResultButton}
+                                className={`mt-6 w-full py-3.5 font-bold rounded-xl shadow-md transition-all duration-300 flex justify-center items-center space-x-2 
+                                    ${isDrawing || showResultButton 
+                                        ? 'bg-slate-200 text-slate-400 cursor-not-allowed' 
+                                        : 'bg-brand-navy hover:bg-slate-700 text-white hover:shadow-lg active:scale-[0.98]'}`}>
+                                {isDrawing ? <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div> : <IconRefresh />}
+                                <span>{isDrawing ? '演算法運算中...' : '開始隨機分配'}</span>
                             </button>
                         </div>
 
-                        {/* 右欄：結果區 (步驟 4) */}
-                        <div className="lg:col-span-7 bg-white p-6 rounded-2xl shadow-lg border border-slate-200 flex flex-col fade-in relative mt-8 lg:mt-0">
+                        <div className="lg:col-span-7 bg-white p-6 rounded-2xl shadow-xl border border-slate-200/60 flex flex-col relative mt-8 lg:mt-0">
                             
-                            {/* 頂部控制列 */}
-                            <div className="flex justify-between items-center border-b pb-3 mb-4">
-                                <h2 className="text-xl font-bold text-[#003566] flex items-center">
-                                    4. 抽籤結果與班表
-                                </h2>
+                            <div className="flex justify-between items-end border-b border-slate-100 pb-4 mb-2">
+                                <div>
+                                    <h2 className="text-xl font-bold text-brand-navy flex items-center">
+                                        4. 抽籤結果與班表
+                                    </h2>
+                                    {currentResults && drawTimes[tab] && (
+                                        <p className="text-xs text-slate-400 mt-1.5 flex items-center font-mono font-medium fade-in tracking-tight">
+                                            <IconClock /> 系統生成時間：{drawTimes[tab]}
+                                        </p>
+                                    )}
+                                </div>
+                                
                                 <button 
                                     onClick={handleCopy}
                                     disabled={!currentResults}
-                                    className={`flex items-center space-x-1 px-4 py-2 rounded-md text-sm font-semibold transition-all ${!currentResults ? 'bg-slate-100 text-slate-400 cursor-not-allowed' : 'bg-[#fef9c3] text-[#003566] hover:bg-[#fde047]'}`}>
-                                    <IconCopy /> <span>複製結果</span>
+                                    className={`group flex items-center space-x-1.5 px-4 py-2 rounded-lg text-sm font-bold transition-all border 
+                                        ${!currentResults 
+                                            ? 'bg-slate-50 border-slate-200 text-slate-400 cursor-not-allowed' 
+                                            : 'bg-white border-slate-200 text-slate-600 hover:text-brand-red hover:border-brand-red/30 hover:bg-brand-red/5 shadow-sm active:scale-95'}`}>
+                                    <span className="text-slate-400 group-hover:text-brand-red transition-colors"><IconCopy /></span>
+                                    <span>複製結果</span>
                                 </button>
                             </div>
 
-                            {/* 動態排班原則提醒面板 */}
-                            <div className="bg-blue-50/70 border border-blue-100 rounded-xl p-4 mb-5 text-sm">
-                                <h4 className="font-bold mb-2 flex items-center text-[#003566]"><IconInfo /> {tab} 排班原則參照</h4>
+                            <div className="bg-slate-50 border border-slate-200/80 rounded-xl p-4 my-4 text-sm shadow-sm">
+                                <h4 className="font-bold mb-2 flex items-center text-brand-navy"><IconInfo /> {tab} 排班原則參照</h4>
                                 {tab === 'PGY1' ? (
-                                    <ul className="list-disc pl-6 space-y-1.5 text-slate-700">
-                                        <li><span className="font-semibold">社區：</span>不做為第一站訓練 (M1)，且安排於 <span className="text-[#fca311] font-bold">偶數月</span> 起訓。</li>
-                                        <li><span className="font-semibold">外科：</span>安排於 <span className="text-[#fca311] font-bold">偶數月</span> 起訓。</li>
-                                        <li><span className="font-semibold">內科：</span>安排於 <span className="text-[#fca311] font-bold">8、11、2、5 月</span> 起訓。</li>
+                                    <ul className="list-disc pl-6 space-y-1.5 text-slate-600">
+                                        <li><span className="font-bold text-slate-800">社區：</span>不做為第一站訓練 (M1)，且安排於 <span className="text-brand-red font-bold">偶數月</span> 起訓。</li>
+                                        <li><span className="font-bold text-slate-800">外科：</span>安排於 <span className="text-brand-red font-bold">偶數月</span> 起訓。</li>
+                                        <li><span className="font-bold text-slate-800">內科：</span>安排於 <span className="text-brand-red font-bold">8、11、2、5 月</span> 起訓。</li>
                                     </ul>
                                 ) : (
-                                    <ul className="list-disc pl-6 space-y-1.5 text-slate-700">
-                                        <li>不分科依表上安排，若為分科，其 3+4 的專科訓練則是依標註 <span className="font-bold text-slate-900">#</span> 站別進行安排。</li>
+                                    <ul className="list-disc pl-6 space-y-1.5 text-slate-600">
+                                        <li>不分科依表上安排，若為分科，其 3+4 的專科訓練則是依標註 <span className="font-bold text-brand-red">#</span> 站別進行安排。</li>
                                         <li>若Y2起訓非八月，則隔年8月起剩餘未安排的站別由教學部依訓練連續性原則安排。</li>
                                     </ul>
                                 )}
                             </div>
 
-                            {!currentResults ? (
-                                <div className="flex-grow flex flex-col items-center justify-center text-slate-400 space-y-4 py-16">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" className="opacity-20"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="9" y1="3" x2="9" y2="21"/></svg>
-                                    <p>請先於左側依序完成設定，並點擊「開始隨機分配」</p>
-                                </div>
-                            ) : (
-                                <div className="space-y-4 overflow-y-auto pr-2 flex-grow">
-                                    {currentResults.map((res, idx) => (
-                                        <div key={idx} className="border border-slate-200 rounded-xl p-4 bg-slate-50 hover:shadow-md transition-shadow">
-                                            <div className="flex justify-between items-start mb-2">
-                                                <h3 className="font-bold text-lg text-[#003566]">{res.group}</h3>
-                                                <span className="text-xs bg-slate-200 text-slate-600 px-2 py-1 rounded-md font-medium">分配 {res.names.length} 人</span>
-                                            </div>
-                                            
-                                            <div className="mb-3 flex flex-wrap gap-2">
-                                                {res.names.length > 0 ? res.names.map((name, nIdx) => (
-                                                    <span key={nIdx} className="bg-[#fca311] text-[#003566] font-bold text-sm px-3 py-1 rounded-full shadow-sm">
-                                                        {name}
-                                                    </span>
-                                                )) : <span className="text-sm text-slate-400 italic">此組別無人分配</span>}
-                                            </div>
-
-                                            <div className="grid grid-cols-6 md:grid-cols-12 gap-1.5 mt-3 pt-3 border-t border-slate-200">
-                                                {res.schedule.map((courseStr, i) => {
-                                                    const realMonth = getRealMonth(i);
-                                                    
-                                                    return (
-                                                        <div key={i} className="flex flex-col items-center bg-white border border-slate-200 rounded p-1 shadow-sm transition-colors">
-                                                            <span className="text-[9px] text-slate-500 font-semibold mb-0.5 tracking-tighter">
-                                                                M{i+1} (<span className="text-[#fca311]">{realMonth}月</span>)
-                                                            </span>
-                                                            <span className="text-sm font-bold text-slate-700">{courseStr}</span>
-                                                        </div>
-                                                    )
-                                                })}
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            )}
+                            {renderRightPanel()}
                         </div>
 
                     </main>
 
-                    {/* Toast 提示元件 */}
                     {toast && (
-                        <div className="fixed bottom-6 right-6 bg-slate-800 text-white px-6 py-4 rounded-xl shadow-2xl flex items-center space-x-3 fade-in z-50 max-w-sm">
-                            <IconAlert className="text-[#fca311]" />
+                        <div className="fixed bottom-6 right-6 bg-brand-navy text-white px-6 py-4 rounded-xl shadow-2xl flex items-center space-x-3 fade-in z-50 max-w-sm border border-slate-600">
+                            <IconAlert className="text-brand-red" />
                             <span className="text-sm font-medium leading-relaxed">{toast}</span>
                         </div>
                     )}
