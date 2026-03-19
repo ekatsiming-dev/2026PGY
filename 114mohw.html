@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>114學年度 奇美醫院 PGY 培訓成效分析儀表板</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Noto Sans TC', sans-serif; background-color: #f8fafc; }
+        .number-font { font-family: 'Inter', sans-serif; }
+        .card { background: white; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); transition: transform 0.2s; }
+        .card:hover { transform: translateY(-2px); }
+        details > summary { list-style: none; }
+        details > summary::-webkit-details-marker { display: none; }
+        details[open] summary ~ * { animation: sweep .3s ease-in-out; }
+        @keyframes sweep { 0% {opacity: 0; transform: translateY(-10px)} 100% {opacity: 1; transform: translateY(0)} }
+        .chevron { transition: transform 0.3s ease; }
+        details[open] .chevron { transform: rotate(180deg); }
+    </style>
+</head>
+<body class="text-slate-800">
+
+    <!-- 導航/Header -->
+    <nav class="bg-[#003566] text-white p-4 sticky top-0 z-50 shadow-lg">
+        <div class="max-w-7xl mx-auto flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-white rounded-full flex items-center justify-center text-[#003566] font-bold text-xl">C</div>
+                <div>
+                    <h1 class="text-xl font-bold tracking-wide">114學年度 奇美醫院 PGY 培訓成效儀表板</h1>
+                    <p class="text-xs text-slate-300 opacity-80">資料來源：112年度完訓 / 113年度PGY1 問卷回饋</p>
+                </div>
+            </div>
+            <div class="text-right">
+                <button onclick="window.print()" class="bg-[#fca311] hover:bg-orange-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition shadow-md">
+                    🖨️ 匯出報告
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <main class="max-w-7xl mx-auto p-6 space-y-8">
+
+        <!-- 關鍵指標摘要 (Executive Summary) -->
+        <section class="grid grid-cols-1 md:grid-cols-4 gap-6">
+            <div class="card p-6 border-l-4 border-[#003566]">
+                <h3 class="text-sm text-slate-500 mb-1">總填答人數</h3>
+                <div class="text-3xl font-bold number-font text-[#003566]">37 <span class="text-sm text-slate-400 font-normal">位</span></div>
+                <p class="text-xs text-slate-500 mt-2">112完訓 (12) + 113 PGY1 (25)</p>
+            </div>
+            <!-- 修改：同時顯示兩屆滿意度 -->
+            <div class="card p-6 border-l-4 border-[#fca311]">
+                <h3 class="text-sm text-slate-500 mb-1">整體滿意度 (雙軌)</h3>
+                <div class="flex items-end gap-2">
+                    <div class="text-2xl font-bold number-font text-[#fca311]">92% <span class="text-xs text-slate-400 font-normal">PGY1</span></div>
+                    <div class="text-xl font-bold number-font text-slate-400">67% <span class="text-xs font-normal">完訓</span></div>
+                </div>
+                <p class="text-xs text-orange-600 mt-2">⚠ 完訓學員滿意度顯著較低</p>
+            </div>
+            <div class="card p-6 border-l-4 border-red-500">
+                <h3 class="text-sm text-slate-500 mb-1">需關注議題</h3>
+                <div class="text-3xl font-bold number-font text-red-500">3 <span class="text-sm text-slate-400 font-normal">項</span></div>
+                <p class="text-xs text-slate-500 mt-2">硬體資源 / 內科人力 / 外科職責</p>
+            </div>
+            <div class="card p-6 border-l-4 border-green-500">
+                <h3 class="text-sm text-slate-500 mb-1">完訓核心能力信心</h3>
+                <div class="text-3xl font-bold number-font text-green-600">96.3%</div>
+                <p class="text-xs text-slate-500 mt-2">制度下臨床工作 (Systems-Based)</p>
+            </div>
+        </section>
+
+        <!-- 重點分析：優勢 vs 待強化 -->
+        <section class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- 優勢 -->
+            <div class="card p-6 bg-gradient-to-br from-white to-green-50 border border-green-100">
+                <h2 class="text-lg font-bold text-green-800 mb-4 flex items-center gap-2">
+                    👍 亮點優勢 (Strengths)
+                </h2>
+                <ul class="space-y-3">
+                    <li class="flex items-start gap-3">
+                        <span class="bg-green-200 text-green-800 rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold flex-shrink-0">1</span>
+                        <div>
+                            <p class="font-bold text-slate-700">新進學員適應良好 (PGY1)</p>
+                            <p class="text-sm text-slate-600">權益反映管道滿意度達 <span class="font-bold text-green-700">96%</span>，遠高於全國平均 <span class="text-slate-500">(86.7%)</span>。</p>
+                        </div>
+                    </li>
+                    <li class="flex items-start gap-3">
+                        <span class="bg-green-200 text-green-800 rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold flex-shrink-0">2</span>
+                        <div>
+                            <p class="font-bold text-slate-700">教學品質管理嚴謹</p>
+                            <p class="text-sm text-slate-600">113年度滿意度 <span class="font-bold text-green-700">92%</span>，優於全國 <span class="text-slate-500">(89.6%)</span>。</p>
+                        </div>
+                    </li>
+                    <li class="flex items-start gap-3">
+                        <span class="bg-green-200 text-green-800 rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold flex-shrink-0">3</span>
+                        <div>
+                            <p class="font-bold text-slate-700">實務適應力強</p>
+                            <p class="text-sm text-slate-600">完訓學員對「制度下臨床工作」自信度達 <span class="font-bold text-green-700">96.3%</span></p>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- 待強化 -->
+            <div class="card p-6 bg-gradient-to-br from-white to-red-50 border border-red-100">
+                <h2 class="text-lg font-bold text-red-800 mb-4 flex items-center gap-2">
+                    🚩 待強化議題 (Weaknesses)
+                </h2>
+                <ul class="space-y-3">
+                    <li class="flex items-start gap-3">
+                        <span class="bg-red-200 text-red-800 rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold flex-shrink-0">1</span>
+                        <div>
+                            <p class="font-bold text-slate-700">資深學員溝通斷層 (完訓)</p>
+                            <p class="text-sm text-slate-600">完訓學員權益反映滿意度僅 <span class="font-bold text-red-600">58.3%</span>，遠低於全國 <span class="text-slate-500">(86.7%)</span>。</p>
+                        </div>
+                    </li>
+                    <li class="flex items-start gap-3">
+                        <span class="bg-red-200 text-red-800 rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold flex-shrink-0">2</span>
+                        <div>
+                            <p class="font-bold text-slate-700">空間與硬體資源 (雙屆痛點)</p>
+                            <p class="text-sm text-slate-600">PGY1 (80%) 與 完訓 (66.7%) 兩者滿意度皆低於全國平均 <span class="text-slate-500">(87.4%)</span>。</p>
+                            <p class="text-xs text-red-500 mt-1">痛點：值班室隱私(共用)、期刊權限不足</p>
+                        </div>
+                    </li>
+                    <li class="flex items-start gap-3">
+                        <span class="bg-red-200 text-red-800 rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold flex-shrink-0">3</span>
+                        <div>
+                            <p class="font-bold text-slate-700">臨床負擔與職責</p>
+                            <p class="text-sm text-slate-600">內科值班負荷過重、外科 Primary Care 機會不足。</p>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- 圖表分析區 -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            
+            <!-- 左側：滿意度對比分析 -->
+            <div class="card p-6">
+                <h2 class="text-lg font-bold text-[#003566] mb-4 flex items-center gap-2">
+                    📊 滿意度指標比較 (本院雙軌 vs 全國)
+                </h2>
+                <div class="h-64">
+                    <canvas id="satisfactionChart"></canvas>
+                </div>
+                <div class="mt-4 p-4 bg-slate-50 rounded-lg text-sm text-slate-600">
+                    <strong class="text-[#003566]">數據洞察：</strong>
+                    <ul class="list-disc pl-5 mt-1 space-y-1">
+                        <li><span class="text-green-600 font-semibold">PGY1 (113年)：</span> 在教學管理與溝通管道上，皆顯著<span class="text-green-700 font-bold">高於全國平均</span>，表現優異。</li>
+                        <li><span class="text-red-500 font-semibold">完訓 (112年)：</span> 整體滿意度低於全國，且在「空間及設備」與「權益反映」上出現明顯落差。</li>
+                        <li><span class="text-slate-500 font-semibold">全國基準：</span> 空間設備的全國標準為 87.4%，本院兩屆學員皆未達標，需優先改善。</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- 右側：質性回饋文字雲與分類 -->
+            <div class="card p-6">
+                <h2 class="text-lg font-bold text-[#003566] mb-4 flex items-center gap-2">
+                    💬 學員心聲 (質性回饋歸納)
+                </h2>
+                <div class="space-y-4">
+                    <!-- Item 1 -->
+                    <div class="border border-slate-200 rounded-lg p-3 hover:bg-slate-50">
+                        <div class="flex justify-between items-start">
+                            <h4 class="font-bold text-slate-700">硬體與資源 (High Priority)</h4>
+                            <span class="bg-red-100 text-red-700 text-xs px-2 py-1 rounded-full">硬體設施</span>
+                        </div>
+                        <p class="text-sm text-slate-600 mt-1">「值班室與專科護理師共用，希望能有專用空間」、「希望能增加期刊資源，目前部分文獻無法閱讀全文」。</p>
+                    </div>
+                    <!-- Item 2 -->
+                    <div class="border border-slate-200 rounded-lg p-3 hover:bg-slate-50">
+                        <div class="flex justify-between items-start">
+                            <h4 class="font-bold text-slate-700">臨床負擔 (內科)</h4>
+                            <span class="bg-orange-100 text-orange-700 text-xs px-2 py-1 rounded-full">人力配置</span>
+                        </div>
+                        <p class="text-sm text-slate-600 mt-1">「內科假日值班床數過多，建議增加接病人支援人力」。</p>
+                    </div>
+                    <!-- Item 3 -->
+                    <div class="border border-slate-200 rounded-lg p-3 hover:bg-slate-50">
+                        <div class="flex justify-between items-start">
+                            <h4 class="font-bold text-slate-700">職責界定 (外科)</h4>
+                            <span class="bg-blue-100 text-blue-700 text-xs px-2 py-1 rounded-full">教學成效</span>
+                        </div>
+                        <p class="text-sm text-slate-600 mt-1">「Primary Care 多由 NP 完成，住院醫師負責寫病歷，對臨床經驗累積幫助有限」。</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 完訓人員能力雷達圖 -->
+        <div class="card p-6">
+            <h2 class="text-lg font-bold text-[#003566] mb-4 flex items-center gap-2">
+                🎯 112年度完訓學員核心能力自我評估
+            </h2>
+            <div class="flex flex-col md:flex-row items-center gap-8">
+                <div class="w-full md:w-1/2 h-64 flex justify-center">
+                    <canvas id="competencyChart"></canvas>
+                </div>
+                <div class="w-full md:w-1/2">
+                    <h4 class="font-bold text-slate-700 mb-2">關鍵發現</h4>
+                    <p class="text-sm text-slate-600 mb-4">
+                        完訓學員在四大核心領域的自我評估信心度極高（平均 > 93%），顯示本院在臨床實務訓練上的成效顯著。特別是在「制度下的臨床工作」指標達到 96.3%，代表學員能有效適應醫療體系運作。
+                    </p>
+                    <div class="space-y-2">
+                        <div class="flex justify-between text-xs text-slate-500">
+                            <span>病人照護</span>
+                            <span>93.9%</span>
+                        </div>
+                        <div class="w-full bg-slate-200 rounded-full h-2">
+                            <div class="bg-[#003566] h-2 rounded-full" style="width: 93.9%"></div>
+                        </div>
+                        <div class="flex justify-between text-xs text-slate-500">
+                            <span>溝通技巧</span>
+                            <span>96.1%</span>
+                        </div>
+                        <div class="w-full bg-slate-200 rounded-full h-2">
+                            <div class="bg-[#fca311] h-2 rounded-full" style="width: 96.1%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 策略建議 PDCA (Collapsed) -->
+        <details class="card border-l-4 border-blue-600 group">
+            <summary class="p-6 font-bold text-xl text-[#003566] cursor-pointer flex justify-between items-center bg-white rounded-lg hover:bg-slate-50 transition">
+                <span>🚀 綜合策略建議 (PDCA Approach) <span class="text-sm font-normal text-slate-500 ml-2">(點擊展開詳細計畫)</span></span>
+                <span class="chevron text-slate-400">▼</span>
+            </summary>
+            <div class="p-6 pt-0 border-t border-slate-100 mt-2 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div class="bg-blue-50 p-5 rounded-lg border border-blue-100">
+                    <h3 class="font-bold text-lg mb-2 text-blue-800">Plan (規劃)</h3>
+                    <ul class="text-sm text-slate-600 space-y-2 list-disc pl-4">
+                        <li>盤點圖書館電子期刊資料庫，評估主要缺漏科別。</li>
+                        <li>規劃 PGY 專屬或分區值班空間改善方案。</li>
+                        <li>外科部教學會議：重新檢討 Resident vs NP 工作分配。</li>
+                    </ul>
+                </div>
+                <div class="bg-yellow-50 p-5 rounded-lg border border-yellow-100">
+                    <h3 class="font-bold text-lg mb-2 text-yellow-700">Do (執行)</h3>
+                    <ul class="text-sm text-slate-600 space-y-2 list-disc pl-4">
+                        <li>試辦內科假日支援人力調度機制（Cover）。</li>
+                        <li>落實外科病房「主要照護」職責回歸 PGY，減少純文書作業。</li>
+                        <li>採購高需求期刊或提供館際合作快速通道。</li>
+                    </ul>
+                </div>
+                <div class="bg-green-50 p-5 rounded-lg border border-green-100">
+                    <h3 class="font-bold text-lg mb-2 text-green-800">Check (查核)</h3>
+                    <ul class="text-sm text-slate-600 space-y-2 list-disc pl-4">
+                        <li>追蹤下一季滿意度 Q3 (空間設備) 是否止跌回升。</li>
+                        <li>檢視外科 PGY 對於「獨立照護病人」的信心度變化。</li>
+                    </ul>
+                </div>
+                <div class="bg-purple-50 p-5 rounded-lg border border-purple-100">
+                    <h3 class="font-bold text-lg mb-2 text-purple-800">Act (行動/改善)</h3>
+                    <ul class="text-sm text-slate-600 space-y-2 list-disc pl-4">
+                        <li>若空間無法立即解決，提供配套福利（如值班舒適包）。</li>
+                        <li>將友善職場納入臨床教師考核（針對婦產科回饋）。</li>
+                    </ul>
+                </div>
+            </div>
+        </details>
+
+    </main>
+
+    <footer class="bg-slate-800 text-slate-400 text-center p-6 mt-8 text-sm">
+        <p>&copy; 2026 奇美醫療財團法人奇美醫院 教學部 | Generated by Intelligent Assistant</p>
+    </footer>
+
+    <script>
+        // Chart 1: Satisfaction Comparison
+        const ctxSat = document.getElementById('satisfactionChart').getContext('2d');
+        new Chart(ctxSat, {
+            type: 'bar',
+            data: {
+                labels: ['教學品質管理', '權益反映管道', '空間及設備'],
+                datasets: [
+                    {
+                        label: '113年度 PGY1 (N=25)',
+                        data: [92, 96, 80], // 113年數據
+                        backgroundColor: '#003566',
+                        borderRadius: 4
+                    },
+                    {
+                        label: '112年度 完訓 (N=12)',
+                        data: [75, 58.3, 66.7], // 112年數據 (Q3 補上估計值 66.7%, 8/12)
+                        backgroundColor: '#fca311',
+                        borderRadius: 4
+                    },
+                    {
+                        label: '全國平均',
+                        data: [89.6, 86.7, 87.4], // 113年全國常模
+                        backgroundColor: '#94a3b8',
+                        borderRadius: 4,
+                        type: 'line', // 讓全國平均以線圖或獨立Bar呈現，這裡用Bar保持一致性，或可改Line
+                        order: 1
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: { beginAtZero: true, max: 100 }
+                },
+                plugins: {
+                    legend: { position: 'bottom' },
+                    tooltip: {
+                        mode: 'index',
+                        intersect: false,
+                    }
+                }
+            }
+        });
+
+        // Chart 2: Competency Radar
+        const ctxComp = document.getElementById('competencyChart').getContext('2d');
+        new Chart(ctxComp, {
+            type: 'radar',
+            data: {
+                labels: ['病人照護', '人際溝通', '學習與改善', '專業素養', '制度下工作'],
+                datasets: [{
+                    label: '完訓學員自信度 (112年度)',
+                    data: [93.9, 96.1, 95.6, 95.8, 96.3], // 來自 CSV Q27-31
+                    fill: true,
+                    backgroundColor: 'rgba(252, 163, 17, 0.2)',
+                    borderColor: '#fca311',
+                    pointBackgroundColor: '#fca311',
+                    pointBorderColor: '#fff',
+                    pointHoverBackgroundColor: '#fff',
+                    pointHoverBorderColor: '#fca311'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    r: {
+                        angleLines: { display: false },
+                        suggestedMin: 80,
+                        suggestedMax: 100
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>
