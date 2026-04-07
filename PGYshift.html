@@ -288,7 +288,7 @@
                     const image = canvas.toDataURL('image/png');
                     const link = document.createElement('a');
                     link.href = image;
-                    link.download = `${tab}_抽籤結果_${startMonth}月起訓.png`;
+                    link.download = `${tab}_抽籤結果_${startMonth}月啟訓.png`;
                     link.click();
 
                     showToast('圖片已成功下載！可以直接傳送至群組囉。');
@@ -309,7 +309,7 @@
                 const timeStr = drawTimes[tab] || new Date().toLocaleString('zh-TW', { hour12: false });
                 
                 let text = `【${tab} 規則班抽籤結果】\n`;
-                text += `▶ 起訓月份：${startMonth}月\n`;
+                text += `▶ 啟訓月份：${startMonth}月\n`;
                 text += `▶ 抽籤時間：${timeStr}\n`;
                 text += `--------------------------------------\n\n`;
                 
@@ -459,14 +459,14 @@
 
                             <div className="mb-6 bg-slate-50/50 p-4 rounded-xl border border-slate-100">
                                 <div className="flex items-center justify-between mb-4 border-b border-slate-200/80 pb-3">
-                                    <label className="text-sm font-bold text-slate-700">2. 設定 M1 起訓月份</label>
+                                    <label className="text-sm font-bold text-slate-700">2. 設定 M1 啟訓月份</label>
                                     <select 
                                         value={startMonth} 
                                         onChange={(e) => setStartMonth(parseInt(e.target.value))}
                                         className="py-1.5 px-3 border border-slate-300 bg-white rounded-lg text-sm font-bold text-brand-navy focus:ring-2 focus:ring-brand-red focus:outline-none transition-shadow shadow-sm cursor-pointer"
                                     >
                                         {[...Array(12)].map((_, i) => (
-                                            <option key={i+1} value={i+1}>{i+1} 月起訓</option>
+                                            <option key={i+1} value={i+1}>{i+1} 月啟訓</option>
                                         ))}
                                     </select>
                                 </div>
@@ -579,14 +579,14 @@
                                 <h4 className="font-bold mb-2 flex items-center text-brand-navy"><IconInfo /> {tab} 排班原則參照</h4>
                                 {tab === 'PGY1' ? (
                                     <ul className="list-disc pl-6 space-y-1.5 text-slate-600">
-                                        <li><span className="font-bold text-slate-800">社區：</span>不做為第一站訓練 (M1)，且安排於 <span className="text-brand-red font-bold">偶數月</span> 起訓。</li>
-                                        <li><span className="font-bold text-slate-800">外科：</span>安排於 <span className="text-brand-red font-bold">偶數月</span> 起訓。</li>
-                                        <li><span className="font-bold text-slate-800">內科：</span>安排於 <span className="text-brand-red font-bold">8、11、2、5 月</span> 起訓。</li>
+                                        <li><span className="font-bold text-slate-800">社區：</span>不做為第一站訓練 (M1)，且安排於 <span className="text-brand-red font-bold">偶數月</span> 啟訓。</li>
+                                        <li><span className="font-bold text-slate-800">外科：</span>安排於 <span className="text-brand-red font-bold">偶數月</span> 啟訓。</li>
+                                        <li><span className="font-bold text-slate-800">內科：</span>安排於 <span className="text-brand-red font-bold">8、11、2、5 月</span> 啟訓。</li>
                                     </ul>
                                 ) : (
                                     <ul className="list-disc pl-6 space-y-1.5 text-slate-600">
                                         <li>不分科依表上安排，若為分科，其 3+4 的專科訓練則是依標註 <span className="font-bold text-brand-red">#</span> 站別進行安排。</li>
-                                        <li>若Y2起訓非8月，PGY2起訓月至隔年7月(含)前依抽籤結果安排；8月起剩餘未安排的站別由教學部依訓練連續性原則安排。</li>
+                                        <li>若Y2啟訓非8月，PGY2啟訓月至隔年7月(含)前依抽籤結果安排；8月起剩餘未安排的站別由教學部依訓練連續性原則安排。</li>
                                     </ul>
                                 )}
                             </div>
